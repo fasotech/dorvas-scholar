@@ -93,11 +93,13 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
   const fields = useMemo(() => {
     switch (section) {
       case "students": return [
-        { key: "fullName", label: "Full Name" }, 
+        { key: "fullName", label: "Full Name" },
+      { key: "className", label: "Class Name" }, 
         { key: "admissionNumber", label: "Admission Number" },
         { key: "dob", label: "Date of Birth (YYYY-MM-DD)" },
         { key: "address", label: "Address" },
         { key: "state", label: "State" },
+      { key: "email", label: "Email (Leave blank to auto-generate)" },
         { key: "password", label: "Initial Password (for login)" }
       ];
       case "teachers": return [
@@ -125,11 +127,11 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
 
   return (
     <div className="create-overlay" role="dialog" aria-modal="true" aria-label={label}>
-      <div className="create-panel" style={{ width: 400, padding: 24 }}>
+      <div className="create-panel" style={{ width: fields.length > 4 ? 600 : 400, padding: 24 }}>
         <button className="icon-button close" onClick={onClose} aria-label="Close panel"><X size={19} /></button>
         <span className="stamp"><CircleDot size={14} /> Database Write</span>
         <h2 style={{ marginBottom: 16 }}>{label}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: fields.length > 4 ? '1fr 1fr' : '1fr', gap: 16 }}>
           {fields.map(f => (
             <div key={f.key}>
               <label style={{ display: 'block', fontSize: 13, marginBottom: 4, fontWeight: 600 }}>{f.label}</label>
@@ -141,7 +143,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
               />
             </div>
           ))}
-          <div className="panel-actions" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+          <div className="panel-actions" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 12, gridColumn: '1 / -1' }}>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? "Saving..." : "Save Record"}</Button>
           </div>

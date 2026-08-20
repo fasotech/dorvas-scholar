@@ -86,6 +86,8 @@ var studentSchema = new mongoose2.Schema({
   address: String,
   dob: Date,
   classId: mongoose2.Schema.Types.ObjectId,
+  className: String,
+  email: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 var Student = mongoose2.models.Student || mongoose2.model("Student", studentSchema);
@@ -93,6 +95,8 @@ var teacherSchema = new mongoose2.Schema({
   name: String,
   fullName: String,
   status: String,
+  address: String,
+  email: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 var Teacher = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
@@ -293,7 +297,7 @@ async function createRecord(platformUser, section, payload) {
   const definition = recordDefinitions[section];
   const model = definition.model;
   if (section === "students" || section === "teachers") {
-    let email = payload.fullName.toLowerCase().replace(/\s+/g, ".") + "@dorvas.edu.ng";
+    let email = payload.email || payload.fullName.toLowerCase().replace(/\s+/g, ".") + "@dorvas.edu.ng";
     let exists = await SchoolUser.findOne({ email });
     let counter = 1;
     while (exists) {

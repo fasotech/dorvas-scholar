@@ -29,6 +29,8 @@ const studentSchema = new mongoose.Schema({
   address: String,
   dob: Date,
   classId: mongoose.Schema.Types.ObjectId,
+  className: String,
+  email: String,
   isDeleted: { type: Boolean, default: false } 
 }, baseOptions);
 export const Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
@@ -37,6 +39,8 @@ const teacherSchema = new mongoose.Schema({
   name: String,
   fullName: String,
   status: String,
+  address: String,
+  email: String,
   isDeleted: { type: Boolean, default: false } 
 }, baseOptions);
 export const Teacher = mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
