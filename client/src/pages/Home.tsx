@@ -25,7 +25,7 @@ const primaryNav: NavItem[] = [
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
 ];
 const secondaryNav: NavItem[] = [
-  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
+  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
 ];
 
 const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; description: string; primary: string }> = {
@@ -60,7 +60,7 @@ function ProgressRing({ value, label }: { value: number; label: string }) {
 }
 
 function SignInGate() {
-  return <main className="auth-gate"><div className="auth-gate-card"><LedgerMark /><p className="eyebrow"><span /> Secure school access</p><h1>One school desk, protected by a real sign-in.</h1><p>Your identity and school role determine the records you can see. Sign in to load the secure Green Ledger dashboard.</p><Button onClick={() => startLogin()}><LogIn size={17} /> Sign in to Green Ledger</Button></div></main>;
+  return <main className="auth-gate"><div className="auth-gate-card"><LedgerMark /><p className="eyebrow"><span /> Secure school access</p><h1>One school desk, protected by a real sign-in.</h1><p>Your identity and school role determine the records you can see. Sign in to load the secure Green Ledger dashboard.</p><Button onClick={() => window.location.href='/login'}><LogIn size={17} /> Sign in to Green Ledger</Button></div></main>;
 }
 
 function ConnectionNotice({ summary }: { summary: any }) {

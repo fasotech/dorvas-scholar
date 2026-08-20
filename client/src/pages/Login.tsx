@@ -14,7 +14,7 @@ export default function Login() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [["auth", "me"]] });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (err: any) => {
       setError(err.message || "Invalid credentials");

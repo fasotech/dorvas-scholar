@@ -3,30 +3,19 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { Route, Switch, useLocation } from "wouter";
-import { useAuth } from "./_core/hooks/useAuth";
+import { Route, Switch } from "wouter";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Landing from "./pages/Landing";
 
 function AppRoutes() {
-  const { isAuthenticated, loading } = useAuth();
-  const [location] = useLocation();
-
-  if (loading) return null; // or a spinner
-
-  if (!isAuthenticated && location !== "/login") {
-    window.location.href = "/login";
-    return null;
-  }
-
   return (
     <Switch>
+      <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
-      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Home} />
       {/* Catch-all */}
-      <Route>
-        {isAuthenticated ? <Home /> : <Login />}
-      </Route>
+      <Route component={Landing} />
     </Switch>
   );
 }
