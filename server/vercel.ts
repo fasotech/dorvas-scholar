@@ -41,7 +41,7 @@ app.use(
     createContext: ({ req, res }) => {
       let user = null;
       const authHeader = req.headers.authorization;
-      const token = req.cookies?.auth_token || (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null);
+      const token = (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null) || req.cookies?.auth_token;
       if (token) {
         try {
           user = jwt.verify(token, JWT_SECRET) as any;
