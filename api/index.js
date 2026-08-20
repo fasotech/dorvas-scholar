@@ -288,7 +288,7 @@ async function createRecord(platformUser, section, payload) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== "connected") throw new Error("Database not connected");
   const role = identity.role?.toLowerCase() || "";
-  if (role !== "admin" && role !== "administrator" && role !== "teacher") throw new Error("Unauthorized");
+  if (role !== "admin" && role !== "administrator" && role !== "teacher") throw new Error(`DebugAuth: role='${role}', identityRole='${identity.role}', email='${platformUser.email}', linked=${identity.linked}, isConnected=${identity.connection}`);
   const definition = recordDefinitions[section];
   const model = definition.model;
   if (section === "students" || section === "teachers") {
@@ -332,15 +332,18 @@ async function createRecord(platformUser, section, payload) {
 // server/routers/school.ts
 var schoolRouter = router({
   dashboard: publicProcedure.query(async ({ ctx }) => {
-    const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
+    if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
+    const user = ctx.user;
     return await getDashboard({ openId: user.id || user.openId || user.email, email: user.email, name: user.name });
   }),
   records: publicProcedure.input(z.object({ section: z.enum(dashboardSections), query: z.string().optional().default("") })).query(async ({ ctx, input }) => {
-    const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
+    if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
+    const user = ctx.user;
     return await getRecords({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.query);
   }),
   createRecord: publicProcedure.input(z.object({ section: z.enum(dashboardSections), payload: z.any() })).mutation(async ({ ctx, input }) => {
-    const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
+    if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
+    const user = ctx.user;
     return await createRecord({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.payload);
   })
 });

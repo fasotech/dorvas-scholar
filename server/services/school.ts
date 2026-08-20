@@ -96,7 +96,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== 'connected') throw new Error('Database not connected');
   const role = identity.role?.toLowerCase() || '';
-  if (role !== 'admin' && role !== 'administrator' && role !== 'teacher') throw new Error('Unauthorized');
+  if (role !== 'admin' && role !== 'administrator' && role !== 'teacher') throw new Error(`DebugAuth: role='${role}', identityRole='${identity.role}', email='${platformUser.email}', linked=${identity.linked}, isConnected=${identity.connection}`);
   
   const definition = recordDefinitions[section];
   const model = definition.model;
