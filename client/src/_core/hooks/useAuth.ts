@@ -1,9 +1,22 @@
 
-import { useState, useEffect } from "react";
+import { trpc } from "../../lib/trpc";
+import { useQueryClient } from "@tanstack/react-query";
+
 export function useAuth() {
-  const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [user, setUser] = useState({ name: "Adiela Sam", email: "adielasam2015@gmail.com" });
-  return { user, loading, isAuthenticated, logout: async () => { setIsAuthenticated(false) } };
+  const queryClient = useQueryClient();
+  const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [["auth", "me"]] });
+      window.location.href = "/login";
+    }
+  });
+
+  return {
+    user: user || null,
+    loading: isLoading,
+    isAuthenticated: !!user,
+    logout: () => logoutMutation.mutate()
+  };
 }
 

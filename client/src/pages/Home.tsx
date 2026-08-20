@@ -15,8 +15,8 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type PortalRole = "Administrator" | "Teacher" | "Student" | "Parent";
-type SectionKey = "overview" | "students" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings";
-type ProtectedSection = Exclude<SectionKey, "overview">;
+type SectionKey = "overview" | "students" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users";
+type ProtectedSection = Exclude<SectionKey, "overview" | "users">;
 type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
 
 const primaryNav: NavItem[] = [
@@ -25,7 +25,7 @@ const primaryNav: NavItem[] = [
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
 ];
 const secondaryNav: NavItem[] = [
-  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings },
+  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
 ];
 
 const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; description: string; primary: string }> = {
@@ -116,7 +116,77 @@ export default function Home() {
   const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : primaryNav.filter((item) => item.key === "overview");
   const permittedSecondary = role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key !== "settings");
   const initials = (dashboardQuery.data?.identity.displayName ?? user?.name ?? "GL").split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase();
-  const createLabel = active === "overview" ? roleCopy[role].action : moduleData[active].primary;
+  const createLabel = active === "overview" ? roleCopy[role].action : active === "users" ? "New User" : (moduleData as any)[active]?.primary;
   const navigate = (key: SectionKey) => { setActive(key); setMobileNavOpen(false); };
-  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /><div className="sidebar-note"><span><Sparkles size={15} /> Secure session</span><p>“Small records make a well-run school.”</p></div><div className="account-row"><span className="avatar account">{initials}</span><div><b>{dashboardQuery.data?.identity.displayName ?? user?.name ?? "Signed-in user"}</b><span>{schoolRole ?? "School profile pending"}</span></div><button onClick={() => void logout()} aria-label="Sign out"><LogOut size={17} /></button></div></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><span className="avatar top-avatar">{initials}</span></div></header><div className="canvas-content">{active === "overview" ? <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} /> : <Workspace section={active} onCreate={() => setCreateOpen(true)} />}</div></main>{createOpen && <CreatePanel label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
+  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /><div className="sidebar-note"><span><Sparkles size={15} /> Secure session</span><p>“Small records make a well-run school.”</p></div><div className="account-row"><span className="avatar account">{initials}</span><div><b>{dashboardQuery.data?.identity.displayName ?? user?.name ?? "Signed-in user"}</b><span>{schoolRole ?? "School profile pending"}</span></div><button onClick={() => void logout()} aria-label="Sign out"><LogOut size={17} /></button></div></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><span className="avatar top-avatar">{initials}</span></div></header><div className="canvas-content">{active === "overview" ? <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} /> : active === "users" ? <UserManagement /> : <Workspace section={active as any} onCreate={() => setCreateOpen(true)} />}</div></main>{createOpen && <CreatePanel label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
+}
+
+
+function UserManagement() {
+  const { data: users, refetch } = trpc.users.listUsers.useQuery();
+  const deleteMutation = trpc.users.deleteUser.useMutation({
+    onSuccess: () => refetch(),
+    onError: (err) => toast.error(err.message)
+  });
+  const createMutation = trpc.users.createUser.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast.success("User created");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [role, setRole] = useState("student");
+  const [password, setPassword] = useState("Password123!");
+
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-semibold mb-6">User Management (Admin Only)</h2>
+      
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <h3 className="text-lg font-medium mb-4">Create New User</h3>
+        <form className="flex gap-4 items-end flex-wrap" onSubmit={e => {
+          e.preventDefault();
+          createMutation.mutate({ email, displayName, role: role as any, password });
+        }}>
+          <div><label className="block text-sm mb-1">Email</label><input required className="border p-2 rounded" value={email} onChange={e=>setEmail(e.target.value)}/></div>
+          <div><label className="block text-sm mb-1">Name</label><input required className="border p-2 rounded" value={displayName} onChange={e=>setDisplayName(e.target.value)}/></div>
+          <div><label className="block text-sm mb-1">Role</label>
+            <select className="border p-2 rounded" value={role} onChange={e=>setRole(e.target.value)}>
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="parent">Parent</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div><label className="block text-sm mb-1">Initial Password</label><input required className="border p-2 rounded" value={password} onChange={e=>setPassword(e.target.value)}/></div>
+          <Button type="submit" disabled={createMutation.isPending}>Create User</Button>
+        </form>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr><th className="px-6 py-4">Name</th><th className="px-6 py-4">Email</th><th className="px-6 py-4">Role</th><th className="px-6 py-4">Action</th></tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {users?.map(u => (
+              <tr key={u.id}>
+                <td className="px-6 py-4 font-medium">{u.displayName}</td>
+                <td className="px-6 py-4">{u.email}</td>
+                <td className="px-6 py-4"><span className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-semibold uppercase">{u.role}</span></td>
+                <td className="px-6 py-4">
+                  <button onClick={() => {
+                    if(confirm("Are you sure?")) deleteMutation.mutate({ id: u.id });
+                  }} className="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

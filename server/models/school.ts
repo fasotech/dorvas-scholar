@@ -10,7 +10,7 @@ export const Role = mongoose.models.Role || mongoose.model("Role", roleSchema);
 
 const schoolUserSchema = new mongoose.Schema({
   email: String,
-  oauthOpenId: String,
+  oauthOpenId: String, password: { type: String }, 
   displayName: String,
   role: String,
   profileType: String,
