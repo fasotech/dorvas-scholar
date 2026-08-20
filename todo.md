@@ -10,6 +10,7 @@
 - [x] Add graceful, authenticated dashboard loading states for unavailable MongoDB connectivity.
 - [x] Enforce parent-to-child, student-to-self, and teacher-to-assignment record filters in protected procedures.
 - [x] Add Vitest coverage for allowed and forbidden school-role access patterns.
-- [ ] Add the Atlas Network Access rule and rerun the live MongoDB connection test.
-- [ ] Verify a real linked SchoolUser resolves the correct role after sign-in.
-- [ ] Browser-test permitted overview and section data for each configured school role after Atlas access is enabled.
+- [x] Add the Atlas Network Access rule and rerun the live MongoDB connection test.
+- [x] Verify a real linked SchoolUser resolves the correct role after sign-in.
+- [x] Browser-test permitted overview and section data for each configured school role after Atlas access is enabled.
+

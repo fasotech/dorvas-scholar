@@ -2,5 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist/public",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "crons": [
+    {
+      "path": "/api/cron/send-reports",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/refresh-ranks",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/auto-publish",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/check-expirations",
+      "schedule": "0 1 * * *"
+    }
+  ]
 }
