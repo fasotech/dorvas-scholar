@@ -95,7 +95,8 @@ import bcrypt from "bcryptjs";
 export async function createRecord(platformUser: PlatformUser, section: DashboardSection, payload: any) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== 'connected') throw new Error('Database not connected');
-  if (identity.role !== 'admin' && identity.role !== 'teacher') throw new Error('Unauthorized');
+  const role = identity.role?.toLowerCase() || '';
+  if (role !== 'admin' && role !== 'administrator' && role !== 'teacher') throw new Error('Unauthorized');
   
   const definition = recordDefinitions[section];
   const model = definition.model;

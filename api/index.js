@@ -287,7 +287,8 @@ async function getRecords(platformUser, section, query) {
 async function createRecord(platformUser, section, payload) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== "connected") throw new Error("Database not connected");
-  if (identity.role !== "admin" && identity.role !== "teacher") throw new Error("Unauthorized");
+  const role = identity.role?.toLowerCase() || "";
+  if (role !== "admin" && role !== "administrator" && role !== "teacher") throw new Error("Unauthorized");
   const definition = recordDefinitions[section];
   const model = definition.model;
   if (section === "students" || section === "teachers") {

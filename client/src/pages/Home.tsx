@@ -40,6 +40,7 @@ const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; des
   announcements: { eyebrow: "School voice", title: "Keep every family informed, without noise.", description: "Published and scheduled notices are available from the school database.", primary: "Create announcement" },
   calendar: { eyebrow: "School rhythm", title: "The term at a glance, then in detail.", description: "Upcoming scheduled assessments and school dates load from the secure timetable data.", primary: "Add calendar event" },
   settings: { eyebrow: "School settings", title: "Keep the foundation orderly.", description: "Academic sessions and protected school configuration are reserved for administrators.", primary: "Update settings" },
+  teachers: { eyebrow: "Teacher roster", title: "Manage teaching staff.", description: "Review and manage the teacher roster and subjects.", primary: "New Teacher" },
 };
 
 const roleCopy: Record<PortalRole, { eyebrow: string; greeting: string; description: string; action: string }> = {
