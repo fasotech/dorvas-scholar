@@ -1,48 +1,14 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
 // server/vercel.ts
-var vercel_exports = {};
-__export(vercel_exports, {
-  default: () => vercel_default
-});
-module.exports = __toCommonJS(vercel_exports);
-var import_express = __toESM(require("express"), 1);
-var trpcExpress = __toESM(require("@trpc/server/adapters/express"), 1);
-var import_cookie_parser = __toESM(require("cookie-parser"), 1);
-var import_jsonwebtoken2 = __toESM(require("jsonwebtoken"), 1);
+import express from "express";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import cookieParser from "cookie-parser";
+import jwt2 from "jsonwebtoken";
 
 // server/_core/trpc.ts
-var import_server = require("@trpc/server");
-var import_superjson = __toESM(require("superjson"), 1);
+import { initTRPC } from "@trpc/server";
+import superjson from "superjson";
 var JWT_SECRET = process.env.JWT_SECRET || "default_unsafe_secret";
-var t = import_server.initTRPC.context().create({ transformer: import_superjson.default });
+var t = initTRPC.context().create({ transformer: superjson });
 var router = t.router;
 var publicProcedure = t.procedure;
 var protectedProcedure = t.procedure.use(({ ctx, next }) => {
@@ -61,14 +27,14 @@ var protectedProcedure = t.procedure.use(({ ctx, next }) => {
 var systemRouter = router({});
 
 // server/routers/school.ts
-var import_zod = require("zod");
+import { z } from "zod";
 
 // server/mongo.ts
-var import_mongoose = __toESM(require("mongoose"), 1);
+import mongoose from "mongoose";
 var nextRetryAt = 0;
 var lastConnectionError = null;
 async function getMongoConnection() {
-  if (import_mongoose.default.connection.readyState === 1) return import_mongoose.default.connection;
+  if (mongoose.connection.readyState === 1) return mongoose.connection;
   if (Date.now() < nextRetryAt) return null;
   const uri = process.env.MONGODB_URI;
   if (!uri || !/^mongodb(\+srv)?:\/\//.test(uri)) {
@@ -76,17 +42,17 @@ async function getMongoConnection() {
     return null;
   }
   try {
-    await import_mongoose.default.connect(uri, {
+    await mongoose.connect(uri, {
       connectTimeoutMS: 8e3,
       serverSelectionTimeoutMS: 8e3,
       maxPoolSize: 10
     });
     lastConnectionError = null;
-    return import_mongoose.default.connection;
+    return mongoose.connection;
   } catch (error) {
     lastConnectionError = error instanceof Error ? error.message : "MongoDB connection failed.";
     nextRetryAt = Date.now() + 3e4;
-    await import_mongoose.default.disconnect().catch(() => void 0);
+    await mongoose.disconnect().catch(() => void 0);
     return null;
   }
 }
@@ -95,98 +61,98 @@ function getMongoConnectionIssue() {
 }
 
 // server/models/school.ts
-var import_mongoose2 = __toESM(require("mongoose"), 1);
+import mongoose2 from "mongoose";
 var baseOptions = { timestamps: true };
-var roleSchema = new import_mongoose2.default.Schema({ name: String }, baseOptions);
-var Role = import_mongoose2.default.models.Role || import_mongoose2.default.model("Role", roleSchema);
-var schoolUserSchema = new import_mongoose2.default.Schema({
+var roleSchema = new mongoose2.Schema({ name: String }, baseOptions);
+var Role = mongoose2.models.Role || mongoose2.model("Role", roleSchema);
+var schoolUserSchema = new mongoose2.Schema({
   email: String,
   oauthOpenId: String,
   password: { type: String },
   displayName: String,
   role: String,
   profileType: String,
-  profileId: import_mongoose2.default.Schema.Types.ObjectId,
+  profileId: mongoose2.Schema.Types.ObjectId,
   isActive: { type: Boolean, default: true }
 }, baseOptions);
-var SchoolUser = import_mongoose2.default.models.SchoolUser || import_mongoose2.default.model("SchoolUser", schoolUserSchema);
-var studentSchema = new import_mongoose2.default.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Student = import_mongoose2.default.models.Student || import_mongoose2.default.model("Student", studentSchema);
-var teacherSchema = new import_mongoose2.default.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Teacher = import_mongoose2.default.models.Teacher || import_mongoose2.default.model("Teacher", teacherSchema);
-var parentSchema = new import_mongoose2.default.Schema({ name: String, children: [{ type: import_mongoose2.default.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
-var Parent = import_mongoose2.default.models.Parent || import_mongoose2.default.model("Parent", parentSchema);
-var schoolClassSchema = new import_mongoose2.default.Schema({ name: String }, baseOptions);
-var SchoolClass = import_mongoose2.default.models.SchoolClass || import_mongoose2.default.model("SchoolClass", schoolClassSchema);
-var subjectSchema = new import_mongoose2.default.Schema({ name: String }, baseOptions);
-var Subject = import_mongoose2.default.models.Subject || import_mongoose2.default.model("Subject", subjectSchema);
-var classSubjectSchema = new import_mongoose2.default.Schema({ classId: import_mongoose2.default.Schema.Types.ObjectId, subjectId: import_mongoose2.default.Schema.Types.ObjectId, teacherId: import_mongoose2.default.Schema.Types.ObjectId }, baseOptions);
-var ClassSubject = import_mongoose2.default.models.ClassSubject || import_mongoose2.default.model("ClassSubject", classSubjectSchema);
-var academicSessionSchema = new import_mongoose2.default.Schema({ name: String }, baseOptions);
-var AcademicSession = import_mongoose2.default.models.AcademicSession || import_mongoose2.default.model("AcademicSession", academicSessionSchema);
-var termSchema = new import_mongoose2.default.Schema({ name: String }, baseOptions);
-var Term = import_mongoose2.default.models.Term || import_mongoose2.default.model("Term", termSchema);
-var attendanceSchema = new import_mongoose2.default.Schema({
-  studentId: import_mongoose2.default.Schema.Types.ObjectId,
+var SchoolUser = mongoose2.models.SchoolUser || mongoose2.model("SchoolUser", schoolUserSchema);
+var studentSchema = new mongoose2.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
+var Student = mongoose2.models.Student || mongoose2.model("Student", studentSchema);
+var teacherSchema = new mongoose2.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
+var Teacher = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
+var parentSchema = new mongoose2.Schema({ name: String, children: [{ type: mongoose2.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
+var Parent = mongoose2.models.Parent || mongoose2.model("Parent", parentSchema);
+var schoolClassSchema = new mongoose2.Schema({ name: String }, baseOptions);
+var SchoolClass = mongoose2.models.SchoolClass || mongoose2.model("SchoolClass", schoolClassSchema);
+var subjectSchema = new mongoose2.Schema({ name: String }, baseOptions);
+var Subject = mongoose2.models.Subject || mongoose2.model("Subject", subjectSchema);
+var classSubjectSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, subjectId: mongoose2.Schema.Types.ObjectId, teacherId: mongoose2.Schema.Types.ObjectId }, baseOptions);
+var ClassSubject = mongoose2.models.ClassSubject || mongoose2.model("ClassSubject", classSubjectSchema);
+var academicSessionSchema = new mongoose2.Schema({ name: String }, baseOptions);
+var AcademicSession = mongoose2.models.AcademicSession || mongoose2.model("AcademicSession", academicSessionSchema);
+var termSchema = new mongoose2.Schema({ name: String }, baseOptions);
+var Term = mongoose2.models.Term || mongoose2.model("Term", termSchema);
+var attendanceSchema = new mongoose2.Schema({
+  studentId: mongoose2.Schema.Types.ObjectId,
   date: Date,
   periodKey: String,
   status: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 attendanceSchema.index({ studentId: 1, date: 1, periodKey: 1 }, { unique: true });
-var Attendance = import_mongoose2.default.models.Attendance || import_mongoose2.default.model("Attendance", attendanceSchema);
-var examSchema = new import_mongoose2.default.Schema({ name: String, classId: import_mongoose2.default.Schema.Types.ObjectId, subjectId: import_mongoose2.default.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Exam = import_mongoose2.default.models.Exam || import_mongoose2.default.model("Exam", examSchema);
-var questionSchema = new import_mongoose2.default.Schema({ examId: import_mongoose2.default.Schema.Types.ObjectId, text: String }, baseOptions);
-var Question = import_mongoose2.default.models.Question || import_mongoose2.default.model("Question", questionSchema);
-var examAttemptSchema = new import_mongoose2.default.Schema({
-  examId: import_mongoose2.default.Schema.Types.ObjectId,
-  studentId: import_mongoose2.default.Schema.Types.ObjectId,
+var Attendance = mongoose2.models.Attendance || mongoose2.model("Attendance", attendanceSchema);
+var examSchema = new mongoose2.Schema({ name: String, classId: mongoose2.Schema.Types.ObjectId, subjectId: mongoose2.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
+var Exam = mongoose2.models.Exam || mongoose2.model("Exam", examSchema);
+var questionSchema = new mongoose2.Schema({ examId: mongoose2.Schema.Types.ObjectId, text: String }, baseOptions);
+var Question = mongoose2.models.Question || mongoose2.model("Question", questionSchema);
+var examAttemptSchema = new mongoose2.Schema({
+  examId: mongoose2.Schema.Types.ObjectId,
+  studentId: mongoose2.Schema.Types.ObjectId,
   attemptNumber: Number
 }, baseOptions);
 examAttemptSchema.index({ examId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
-var ExamAttempt = import_mongoose2.default.models.ExamAttempt || import_mongoose2.default.model("ExamAttempt", examAttemptSchema);
-var examAnswerSchema = new import_mongoose2.default.Schema({ attemptId: import_mongoose2.default.Schema.Types.ObjectId }, baseOptions);
-var ExamAnswer = import_mongoose2.default.models.ExamAnswer || import_mongoose2.default.model("ExamAnswer", examAnswerSchema);
-var resultSchema = new import_mongoose2.default.Schema({
-  studentId: import_mongoose2.default.Schema.Types.ObjectId,
-  examId: import_mongoose2.default.Schema.Types.ObjectId,
+var ExamAttempt = mongoose2.models.ExamAttempt || mongoose2.model("ExamAttempt", examAttemptSchema);
+var examAnswerSchema = new mongoose2.Schema({ attemptId: mongoose2.Schema.Types.ObjectId }, baseOptions);
+var ExamAnswer = mongoose2.models.ExamAnswer || mongoose2.model("ExamAnswer", examAnswerSchema);
+var resultSchema = new mongoose2.Schema({
+  studentId: mongoose2.Schema.Types.ObjectId,
+  examId: mongoose2.Schema.Types.ObjectId,
   score: Number,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 resultSchema.index({ studentId: 1, examId: 1 }, { unique: true });
-var Result = import_mongoose2.default.models.Result || import_mongoose2.default.model("Result", resultSchema);
-var reportCardSchema = new import_mongoose2.default.Schema({ studentId: import_mongoose2.default.Schema.Types.ObjectId }, baseOptions);
-var ReportCard = import_mongoose2.default.models.ReportCard || import_mongoose2.default.model("ReportCard", reportCardSchema);
-var feeSchema = new import_mongoose2.default.Schema({ studentId: import_mongoose2.default.Schema.Types.ObjectId, amount: Number }, baseOptions);
-var Fee = import_mongoose2.default.models.Fee || import_mongoose2.default.model("Fee", feeSchema);
-var paymentSchema = new import_mongoose2.default.Schema({
-  studentId: import_mongoose2.default.Schema.Types.ObjectId,
+var Result = mongoose2.models.Result || mongoose2.model("Result", resultSchema);
+var reportCardSchema = new mongoose2.Schema({ studentId: mongoose2.Schema.Types.ObjectId }, baseOptions);
+var ReportCard = mongoose2.models.ReportCard || mongoose2.model("ReportCard", reportCardSchema);
+var feeSchema = new mongoose2.Schema({ studentId: mongoose2.Schema.Types.ObjectId, amount: Number }, baseOptions);
+var Fee = mongoose2.models.Fee || mongoose2.model("Fee", feeSchema);
+var paymentSchema = new mongoose2.Schema({
+  studentId: mongoose2.Schema.Types.ObjectId,
   amount: Number,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
-var Payment = import_mongoose2.default.models.Payment || import_mongoose2.default.model("Payment", paymentSchema);
-var announcementSchema = new import_mongoose2.default.Schema({ title: String, content: String }, baseOptions);
-var Announcement = import_mongoose2.default.models.Announcement || import_mongoose2.default.model("Announcement", announcementSchema);
-var messageSchema = new import_mongoose2.default.Schema({ fromId: import_mongoose2.default.Schema.Types.ObjectId, toId: import_mongoose2.default.Schema.Types.ObjectId, body: String }, baseOptions);
-var Message = import_mongoose2.default.models.Message || import_mongoose2.default.model("Message", messageSchema);
-var notificationSchema = new import_mongoose2.default.Schema({ userId: import_mongoose2.default.Schema.Types.ObjectId, message: String }, baseOptions);
-var Notification = import_mongoose2.default.models.Notification || import_mongoose2.default.model("Notification", notificationSchema);
-var documentSchema = new import_mongoose2.default.Schema({ url: String }, baseOptions);
-var Document = import_mongoose2.default.models.Document || import_mongoose2.default.model("Document", documentSchema);
-var auditLogSchema = new import_mongoose2.default.Schema({ action: String }, baseOptions);
-var AuditLog = import_mongoose2.default.models.AuditLog || import_mongoose2.default.model("AuditLog", auditLogSchema);
-var homeworkSchema = new import_mongoose2.default.Schema({ classId: import_mongoose2.default.Schema.Types.ObjectId, title: String }, baseOptions);
-var Homework = import_mongoose2.default.models.Homework || import_mongoose2.default.model("Homework", homeworkSchema);
-var assignmentSchema = new import_mongoose2.default.Schema({ classId: import_mongoose2.default.Schema.Types.ObjectId, title: String }, baseOptions);
-var Assignment = import_mongoose2.default.models.Assignment || import_mongoose2.default.model("Assignment", assignmentSchema);
-var timetableSchema = new import_mongoose2.default.Schema({ classId: import_mongoose2.default.Schema.Types.ObjectId }, baseOptions);
-var Timetable = import_mongoose2.default.models.Timetable || import_mongoose2.default.model("Timetable", timetableSchema);
-var admissionSchema = new import_mongoose2.default.Schema({ studentName: String }, baseOptions);
-var Admission = import_mongoose2.default.models.Admission || import_mongoose2.default.model("Admission", admissionSchema);
+var Payment = mongoose2.models.Payment || mongoose2.model("Payment", paymentSchema);
+var announcementSchema = new mongoose2.Schema({ title: String, content: String }, baseOptions);
+var Announcement = mongoose2.models.Announcement || mongoose2.model("Announcement", announcementSchema);
+var messageSchema = new mongoose2.Schema({ fromId: mongoose2.Schema.Types.ObjectId, toId: mongoose2.Schema.Types.ObjectId, body: String }, baseOptions);
+var Message = mongoose2.models.Message || mongoose2.model("Message", messageSchema);
+var notificationSchema = new mongoose2.Schema({ userId: mongoose2.Schema.Types.ObjectId, message: String }, baseOptions);
+var Notification = mongoose2.models.Notification || mongoose2.model("Notification", notificationSchema);
+var documentSchema = new mongoose2.Schema({ url: String }, baseOptions);
+var Document = mongoose2.models.Document || mongoose2.model("Document", documentSchema);
+var auditLogSchema = new mongoose2.Schema({ action: String }, baseOptions);
+var AuditLog = mongoose2.models.AuditLog || mongoose2.model("AuditLog", auditLogSchema);
+var homeworkSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, title: String }, baseOptions);
+var Homework = mongoose2.models.Homework || mongoose2.model("Homework", homeworkSchema);
+var assignmentSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, title: String }, baseOptions);
+var Assignment = mongoose2.models.Assignment || mongoose2.model("Assignment", assignmentSchema);
+var timetableSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId }, baseOptions);
+var Timetable = mongoose2.models.Timetable || mongoose2.model("Timetable", timetableSchema);
+var admissionSchema = new mongoose2.Schema({ studentName: String }, baseOptions);
+var Admission = mongoose2.models.Admission || mongoose2.model("Admission", admissionSchema);
 
 // server/services/schoolAccess.ts
-var import_mongoose3 = require("mongoose");
+import { Types } from "mongoose";
 function canAccessSection(role, section) {
   if (!role) return false;
   if (role === "admin") return true;
@@ -205,12 +171,12 @@ async function getScopedFilter(identity, section) {
     const student = await Student.findById(identity.profileId).select("classId").lean();
     if (!student) return { _id: null };
     if (section === "attendance" || section === "results" || section === "fees") {
-      return { studentId: new import_mongoose3.Types.ObjectId(identity.profileId) };
+      return { studentId: new Types.ObjectId(identity.profileId) };
     }
     if (section === "exams" || section === "classes") {
       return { classId: student.classId };
     }
-    return { _id: new import_mongoose3.Types.ObjectId(identity.profileId) };
+    return { _id: new Types.ObjectId(identity.profileId) };
   }
   if (identity.role === "teacher") {
     const teacher = await Teacher.findById(identity.profileId).select("classIds subjectIds").lean();
@@ -218,7 +184,7 @@ async function getScopedFilter(identity, section) {
     if (section === "results" || section === "exams" || section === "attendance" || section === "students") {
       return { classId: { $in: teacher.classIds || [] } };
     }
-    return { _id: new import_mongoose3.Types.ObjectId(identity.profileId) };
+    return { _id: new Types.ObjectId(identity.profileId) };
   }
   if (identity.role === "parent") {
     const parent = await Parent.findById(identity.profileId).select("studentIds").lean();
@@ -308,21 +274,21 @@ var schoolRouter = router({
     const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
     return await getDashboard({ openId: user.id || user.openId || user.email, email: user.email, name: user.name });
   }),
-  records: publicProcedure.input(import_zod.z.object({ section: import_zod.z.enum(dashboardSections), query: import_zod.z.string().optional().default("") })).query(async ({ ctx, input }) => {
+  records: publicProcedure.input(z.object({ section: z.enum(dashboardSections), query: z.string().optional().default("") })).query(async ({ ctx, input }) => {
     const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
     return await getRecords({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.query);
   })
 });
 
 // server/routers/auth.ts
-var import_zod2 = require("zod");
-var import_bcryptjs = __toESM(require("bcryptjs"), 1);
-var import_jsonwebtoken = __toESM(require("jsonwebtoken"), 1);
+import { z as z2 } from "zod";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 var JWT_SECRET2 = process.env.JWT_SECRET || "default_unsafe_secret";
 var authRouter = router({
-  login: publicProcedure.input(import_zod2.z.object({
-    email: import_zod2.z.string().email(),
-    password: import_zod2.z.string().min(6)
+  login: publicProcedure.input(z2.object({
+    email: z2.string().email(),
+    password: z2.string().min(6)
   })).mutation(async ({ input, ctx }) => {
     const user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
     if (!user) {
@@ -332,16 +298,16 @@ var authRouter = router({
     if (!user.password) {
       if (input.password === "Admin123!") {
         isValid = true;
-        user.password = await import_bcryptjs.default.hash("Admin123!", 10);
+        user.password = await bcrypt.hash("Admin123!", 10);
         await user.save();
       }
     } else {
-      isValid = await import_bcryptjs.default.compare(input.password, user.password);
+      isValid = await bcrypt.compare(input.password, user.password);
     }
     if (!isValid) {
       throw new Error("Invalid email or password");
     }
-    const token = import_jsonwebtoken.default.sign(
+    const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role, name: user.displayName },
       JWT_SECRET2,
       { expiresIn: "7d" }
@@ -375,8 +341,8 @@ var authRouter = router({
 });
 
 // server/routers/users.ts
-var import_zod3 = require("zod");
-var import_bcryptjs2 = __toESM(require("bcryptjs"), 1);
+import { z as z3 } from "zod";
+import bcrypt2 from "bcryptjs";
 var usersRouter = router({
   listUsers: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
@@ -389,16 +355,16 @@ var usersRouter = router({
       isActive: u.isActive
     }));
   }),
-  createUser: protectedProcedure.input(import_zod3.z.object({
-    email: import_zod3.z.string().email(),
-    displayName: import_zod3.z.string(),
-    role: import_zod3.z.enum(["admin", "teacher", "student", "parent"]),
-    password: import_zod3.z.string().min(6)
+  createUser: protectedProcedure.input(z3.object({
+    email: z3.string().email(),
+    displayName: z3.string(),
+    role: z3.enum(["admin", "teacher", "student", "parent"]),
+    password: z3.string().min(6)
   })).mutation(async ({ input, ctx }) => {
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
     const existingUser = await SchoolUser.findOne({ email: input.email.toLowerCase() });
     if (existingUser && !existingUser.isDeleted) throw new Error("Email already in use");
-    const hashedPassword = await import_bcryptjs2.default.hash(input.password, 10);
+    const hashedPassword = await bcrypt2.hash(input.password, 10);
     let profileId = null;
     if (input.role === "student") {
       const student = await Student.create({ name: input.displayName });
@@ -422,7 +388,7 @@ var usersRouter = router({
     });
     return { success: true, id: newUser._id.toString() };
   }),
-  deleteUser: protectedProcedure.input(import_zod3.z.object({ id: import_zod3.z.string() })).mutation(async ({ input, ctx }) => {
+  deleteUser: protectedProcedure.input(z3.object({ id: z3.string() })).mutation(async ({ input, ctx }) => {
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
     const userToDelete = await SchoolUser.findById(input.id);
     if (!userToDelete) throw new Error("User not found");
@@ -448,13 +414,13 @@ var appRouter = router({
 });
 
 // server/vercel.ts
-var import_mongoose4 = __toESM(require("mongoose"), 1);
-var app = (0, import_express.default)();
-app.use(import_express.default.json());
-app.use((0, import_cookie_parser.default)());
+import mongoose3 from "mongoose";
+var app = express();
+app.use(express.json());
+app.use(cookieParser());
 var isConnected = false;
 var connectDB = async () => {
-  if (isConnected || import_mongoose4.default.connection.readyState >= 1) {
+  if (isConnected || mongoose3.connection.readyState >= 1) {
     isConnected = true;
     return;
   }
@@ -463,7 +429,7 @@ var connectDB = async () => {
     return;
   }
   try {
-    await import_mongoose4.default.connect(process.env.MONGODB_URI);
+    await mongoose3.connect(process.env.MONGODB_URI);
     isConnected = true;
   } catch (err) {
     console.error("MongoDB Connection Error:", err);
@@ -483,7 +449,7 @@ app.use(
       const token = req.cookies?.auth_token;
       if (token) {
         try {
-          user = import_jsonwebtoken2.default.verify(token, JWT_SECRET3);
+          user = jwt2.verify(token, JWT_SECRET3);
         } catch (e) {
         }
       }
@@ -492,3 +458,6 @@ app.use(
   })
 );
 var vercel_default = app;
+export {
+  vercel_default as default
+};
