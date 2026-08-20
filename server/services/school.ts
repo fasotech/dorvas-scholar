@@ -12,7 +12,7 @@ type PlatformUser = { openId: string; email?: string | null; name?: string | nul
 export async function getSchoolIdentity(platformUser: PlatformUser) {
   const connection = await getMongoConnection();
   if (!connection) return { connection: "unavailable" as const, issue: getMongoConnectionIssue(), linked: false as const, role: null, displayName: platformUser.name ?? "Signed-in user", profileId: null, schoolUserId: null };
-  const schoolUser = await SchoolUser.findOne({ isDeleted: false, isActive: true, $or: [{ oauthOpenId: platformUser.openId }, ...(platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : [])] }).lean();
+  const schoolUser = await SchoolUser.findOne({ isDeleted: { $ne: true }, isActive: { $ne: false }, $or: [{ oauthOpenId: platformUser.openId }, ...(platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : [])] }).lean();
   return { connection: "connected" as const, issue: null, linked: Boolean(schoolUser), role: (schoolUser?.role ?? null) as SchoolRole | null, displayName: schoolUser?.displayName ?? platformUser.name ?? "Signed-in user", profileId: schoolUser?.profileId?.toString() ?? null, schoolUserId: schoolUser?._id?.toString() ?? null };
 }
 
@@ -96,7 +96,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== 'connected') throw new Error('Database not connected');
   const role = identity.role?.toLowerCase() || '';
-  if (role !== 'admin' && role !== 'administrator' && role !== 'teacher') throw new Error(`DebugAuth: role='${role}', identityRole='${identity.role}', email='${platformUser.email}', linked=${identity.linked}, isConnected=${identity.connection}`);
+  if (role !== 'admin' && role !== 'administrator' && role !== 'teacher') throw new Error('Unauthorized');
   
   const definition = recordDefinitions[section];
   const model = definition.model;

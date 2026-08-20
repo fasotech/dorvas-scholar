@@ -15,7 +15,7 @@ export const authRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
 
-      let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
+      let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
       
       // Auto-create super admin if they don't exist
       if (!user && input.email.toLowerCase() === 'adielasam2015@gmail.com') {

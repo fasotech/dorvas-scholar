@@ -73,7 +73,8 @@ var schoolUserSchema = new mongoose2.Schema({
   role: String,
   profileType: String,
   profileId: mongoose2.Schema.Types.ObjectId,
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 var SchoolUser = mongoose2.models.SchoolUser || mongoose2.model("SchoolUser", schoolUserSchema);
 var studentSchema = new mongoose2.Schema({
@@ -215,7 +216,7 @@ var dashboardSections = ["students", "teachers", "classes", "attendance", "exams
 async function getSchoolIdentity(platformUser) {
   const connection = await getMongoConnection();
   if (!connection) return { connection: "unavailable", issue: getMongoConnectionIssue(), linked: false, role: null, displayName: platformUser.name ?? "Signed-in user", profileId: null, schoolUserId: null };
-  const schoolUser = await SchoolUser.findOne({ isDeleted: false, isActive: true, $or: [{ oauthOpenId: platformUser.openId }, ...platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : []] }).lean();
+  const schoolUser = await SchoolUser.findOne({ isDeleted: { $ne: true }, isActive: { $ne: false }, $or: [{ oauthOpenId: platformUser.openId }, ...platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : []] }).lean();
   return { connection: "connected", issue: null, linked: Boolean(schoolUser), role: schoolUser?.role ?? null, displayName: schoolUser?.displayName ?? platformUser.name ?? "Signed-in user", profileId: schoolUser?.profileId?.toString() ?? null, schoolUserId: schoolUser?._id?.toString() ?? null };
 }
 var todayStart = () => {
@@ -288,7 +289,7 @@ async function createRecord(platformUser, section, payload) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== "connected") throw new Error("Database not connected");
   const role = identity.role?.toLowerCase() || "";
-  if (role !== "admin" && role !== "administrator" && role !== "teacher") throw new Error(`DebugAuth: role='${role}', identityRole='${identity.role}', email='${platformUser.email}', linked=${identity.linked}, isConnected=${identity.connection}`);
+  if (role !== "admin" && role !== "administrator" && role !== "teacher") throw new Error("Unauthorized");
   const definition = recordDefinitions[section];
   const model = definition.model;
   if (section === "students" || section === "teachers") {
@@ -358,7 +359,7 @@ var authRouter = router({
     email: z2.string().email(),
     password: z2.string().min(6)
   })).mutation(async ({ input, ctx }) => {
-    let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
+    let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
     if (!user && input.email.toLowerCase() === "adielasam2015@gmail.com") {
       const hash = await bcrypt2.hash(input.password, 10);
       user = await SchoolUser.create({

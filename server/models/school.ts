@@ -15,7 +15,8 @@ const schoolUserSchema = new mongoose.Schema({
   role: String,
   profileType: String,
   profileId: mongoose.Schema.Types.ObjectId,
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 export const SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
 
