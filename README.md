@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Green Ledger School Management Portal
 
-## Getting Started
+Green Ledger is a responsive full-stack school operations and learning portal. It includes protected role-aware dashboards for administrators, teachers, students, and parents; Mongoose models for all required MongoDB collections; server-side tRPC procedures; and Manus OAuth sign-in.
 
-First, run the development server:
+## Local development
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Install dependencies with `pnpm install`, then run `pnpm dev`. The project uses React, Vite, Express, tRPC, Mongoose, and Tailwind CSS. An unauthenticated sign-in screen works without Atlas; live school records require the secure MongoDB configuration in [`ATLAS_SETUP.md`](./ATLAS_SETUP.md).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## GitHub and Vercel deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Commit the entire repository to a new GitHub repository. The original static Vite configuration can be deployed to Vercel, but the current OAuth + tRPC API requires a Node-capable backend deployment. Use Manus built-in full-stack hosting or adapt the Express server to Vercel serverless functions before treating a Vercel deployment as production-ready.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Vercel setting | Value |
+| --- | --- |
+| Framework preset | Vite |
+| Install command | `pnpm install` |
+| Build command | `pnpm run build` |
+| Output directory | `dist/public` |
 
-## Learn More
+## Activating live school data
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Follow [`ATLAS_SETUP.md`](./ATLAS_SETUP.md) to rotate the previously exposed Atlas credential, add a deployment network rule, set `MONGODB_URI`, and link signed-in people to their `SchoolUser` role documents. Keep database credentials only in deployment environment variables; never expose them in browser code.

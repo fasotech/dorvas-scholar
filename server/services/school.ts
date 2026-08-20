@@ -1,0 +1,89 @@
+import { getMongoConnection, getMongoConnectionIssue } from "../mongo";
+import {
+  AcademicSession, Announcement, Attendance, Exam, ExamAttempt, Fee, Payment, Result, SchoolClass, SchoolRole, SchoolUser, Student,
+} from "../models/school";
+import { canAccessSection, getScopedFilter } from "./schoolAccess";
+
+export const dashboardSections = ["students", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"] as const;
+export type DashboardSection = (typeof dashboardSections)[number];
+
+type PlatformUser = { openId: string; email?: string | null; name?: string | null };
+
+export async function getSchoolIdentity(platformUser: PlatformUser) {
+  const connection = await getMongoConnection();
+  if (!connection) return { connection: "unavailable" as const, issue: getMongoConnectionIssue(), linked: false as const, role: null, displayName: platformUser.name ?? "Signed-in user", profileId: null, schoolUserId: null };
+  const schoolUser = await SchoolUser.findOne({ isDeleted: false, isActive: true, $or: [{ oauthOpenId: platformUser.openId }, ...(platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : [])] }).lean();
+  return { connection: "connected" as const, issue: null, linked: Boolean(schoolUser), role: (schoolUser?.role ?? null) as SchoolRole | null, displayName: schoolUser?.displayName ?? platformUser.name ?? "Signed-in user", profileId: schoolUser?.profileId?.toString() ?? null, schoolUserId: schoolUser?._id?.toString() ?? null };
+}
+
+const todayStart = () => { const value = new Date(); value.setHours(0, 0, 0, 0); return value; };
+const displayCurrency = (value: number) => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(value);
+
+export async function getDashboard(platformUser: PlatformUser) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [] };
+  if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [] };
+
+  const start = todayStart();
+  const studentScope = canAccessSection(identity.role, "students") ? await getScopedFilter(identity, "students") : { _id: null };
+  const attendanceScope = canAccessSection(identity.role, "attendance") ? await getScopedFilter(identity, "attendance") : { _id: null };
+  const examScope = canAccessSection(identity.role, "exams") ? await getScopedFilter(identity, "exams") : { _id: null };
+  const feeScope = canAccessSection(identity.role, "fees") ? await getScopedFilter(identity, "fees") : { _id: null };
+  const attemptScope = identity.role === "teacher" || identity.role === "student" ? attendanceScope : identity.role === "admin" ? {} : { _id: null };
+  const [students, present, attempts, payments, absent, upcoming] = await Promise.all([
+    Student.countDocuments({ isDeleted: false, status: "active", ...studentScope }),
+    Attendance.countDocuments({ isDeleted: false, date: { $gte: start }, status: "present", ...attendanceScope }),
+    ExamAttempt.countDocuments({ isDeleted: false, isPractice: true, submittedAt: { $gte: start }, ...attemptScope }),
+    Payment.aggregate([{ $match: { isDeleted: false, status: "successful", ...feeScope } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
+    Attendance.countDocuments({ isDeleted: false, date: { $gte: start }, status: "absent", ...attendanceScope }),
+    Exam.find({ isDeleted: false, status: { $in: ["scheduled", "open"] }, startsAt: { $gte: start }, ...examScope }).sort({ startsAt: 1 }).limit(3).select("title examType startsAt").lean(),
+  ]);
+  const attendanceRate = students > 0 ? `${((present / students) * 100).toFixed(1)}%` : "—";
+  return {
+    identity,
+    metrics: [
+      { key: "attendance", label: "Student attendance", value: attendanceRate, detail: `${present} present today` },
+      { key: "practice", label: "Practice completion", value: String(attempts), detail: "Submitted practice attempts today" },
+      { key: "fees", label: "Fees received", value: displayCurrency(Number(payments[0]?.total ?? 0)), detail: "Successful payments recorded" },
+      { key: "attention", label: "Needs attention", value: String(absent), detail: "Students absent today" },
+    ],
+    upcoming: upcoming.map((exam) => ({ id: exam._id.toString(), title: exam.title, type: exam.examType, startsAt: exam.startsAt ?? null })),
+    followUps: absent > 0 ? [{ label: "Attendance review", detail: `${absent} student${absent === 1 ? "" : "s"} marked absent today` }] : [],
+  };
+}
+
+const recordDefinitions: Record<DashboardSection, { columns: string[]; model: any; fields: string[] }> = {
+  students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
+  classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
+  attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
+  exams: { columns: ["Assessment", "Type", "Status", "Starts"], model: Exam, fields: ["title", "examType", "status", "startsAt"] },
+  results: { columns: ["Student", "Score", "Grade", "Status"], model: Result, fields: ["studentId", "percentage", "grade", "status"] },
+  fees: { columns: ["Fee", "Amount", "Due date", "Status"], model: Fee, fields: ["name", "totalAmount", "dueDate", "status"] },
+  announcements: { columns: ["Announcement", "Priority", "Published", "Status"], model: Announcement, fields: ["title", "priority", "publishAt", "isPublished"] },
+  calendar: { columns: ["Assessment", "Type", "Starts", "Status"], model: Exam, fields: ["title", "examType", "startsAt", "status"] },
+  settings: { columns: ["Academic session", "Starts", "Ends", "Status"], model: AcademicSession, fields: ["name", "startDate", "endDate", "status"] },
+};
+
+function cell(value: unknown) {
+  if (value === null || value === undefined || value === "") return "—";
+  if (value instanceof Date) return value.toLocaleDateString();
+  if (typeof value === "boolean") return value ? "Published" : "Draft";
+  if (typeof value === "number") return String(value);
+  return String(value);
+}
+
+export async function getRecords(platformUser: PlatformUser, section: DashboardSection, query: string) {
+  const identity = await getSchoolIdentity(platformUser);
+  const definition = recordDefinitions[section];
+  if (identity.connection !== "connected") return { identity, columns: definition.columns, records: [], total: 0 };
+  const scope = await getScopedFilter(identity, section);
+  const textFilter = query ? { $or: [{ name: { $regex: query, $options: "i" } }, { title: { $regex: query, $options: "i" } }, { fullName: { $regex: query, $options: "i" } }, { admissionNumber: { $regex: query, $options: "i" } }, { code: { $regex: query, $options: "i" } }] } : {};
+  const filter = { $and: [{ isDeleted: false }, scope, textFilter] };
+  const [records, total] = await Promise.all([definition.model.find(filter).sort({ createdAt: -1 }).limit(50).lean(), definition.model.countDocuments(filter)]);
+  return { identity, columns: definition.columns, records: records.map((record: Record<string, unknown>) => definition.fields.map((field) => cell(record[field]))), total };
+}
+
+export async function getSchoolHealth(platformUser: PlatformUser) {
+  const identity = await getSchoolIdentity(platformUser);
+  return { database: identity.connection, profileLinked: identity.linked, role: identity.role, message: identity.connection === "unavailable" ? "MongoDB Atlas is unavailable. Check MONGODB_URI and Atlas Network Access." : !identity.linked ? "MongoDB is connected, but this OAuth account has not been linked to a school user record." : "Your secure school data connection is ready." };
+}
