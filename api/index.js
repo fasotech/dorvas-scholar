@@ -94,7 +94,7 @@ var teacherSchema = new mongoose2.Schema({
   status: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
-var Teacher2 = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
+var Teacher = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
 var parentSchema = new mongoose2.Schema({ name: String, children: [{ type: mongoose2.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
 var Parent = mongoose2.models.Parent || mongoose2.model("Parent", parentSchema);
 var schoolClassSchema = new mongoose2.Schema({ name: String }, baseOptions);
@@ -194,7 +194,7 @@ async function getScopedFilter(identity, section) {
     return { _id: new Types.ObjectId(identity.profileId) };
   }
   if (identity.role === "teacher") {
-    const teacher = await Teacher2.findById(identity.profileId).select("classIds subjectIds").lean();
+    const teacher = await Teacher.findById(identity.profileId).select("classIds subjectIds").lean();
     if (!teacher) return { _id: null };
     if (section === "results" || section === "exams" || section === "attendance" || section === "students") {
       return { classId: { $in: teacher.classIds || [] } };
@@ -445,7 +445,7 @@ var usersRouter = router({
       const student = await Student.create({ name: input.displayName });
       profileId = student._id;
     } else if (input.role === "teacher") {
-      const teacher = await Teacher2.create({ name: input.displayName });
+      const teacher = await Teacher.create({ name: input.displayName });
       profileId = teacher._id;
     } else if (input.role === "parent") {
       const parent = await Parent.create({ name: input.displayName });

@@ -1,6 +1,6 @@
 import { getMongoConnection, getMongoConnectionIssue } from "../mongo";
 import {
-  AcademicSession, Announcement, Attendance, Exam, ExamAttempt, Fee, Payment, Result, SchoolClass, SchoolRole, SchoolUser, Student,
+  AcademicSession, Announcement, Attendance, Exam, ExamAttempt, Fee, Payment, Result, SchoolClass, SchoolRole, SchoolUser, Student, Teacher,
 } from "../models/school";
 import { canAccessSection, getScopedFilter } from "./schoolAccess";
 
