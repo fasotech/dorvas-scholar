@@ -1,4 +1,3 @@
-
 import { trpc } from "../../lib/trpc";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -7,6 +6,7 @@ export function useAuth() {
   const { data: user, isLoading } = trpc.auth.me.useQuery();
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
+      sessionStorage.removeItem("manus-cookie");
       queryClient.invalidateQueries({ queryKey: [["auth", "me"]] });
       window.location.href = "/login";
     }
@@ -19,4 +19,3 @@ export function useAuth() {
     logout: () => logoutMutation.mutate()
   };
 }
-

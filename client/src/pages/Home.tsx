@@ -195,7 +195,7 @@ export default function Home() {
   const initials = (dashboardQuery.data?.identity.displayName ?? user?.name ?? "GL").split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase();
   const createLabel = active === "overview" ? roleCopy[role].action : active === "users" ? "New User" : (moduleData as any)[active]?.primary;
   const navigate = (key: SectionKey) => { setActive(key); setMobileNavOpen(false); };
-  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /><div className="sidebar-note"><span><Sparkles size={15} /> Secure session</span><p>“Small records make a well-run school.”</p></div><div className="account-row"><span className="avatar account">{initials}</span><div><b>{dashboardQuery.data?.identity.displayName ?? user?.name ?? "Signed-in user"}</b><span>{schoolRole ?? "School profile pending"}</span></div><button onClick={() => void logout()} aria-label="Sign out"><LogOut size={17} /></button></div></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><span className="avatar top-avatar">{initials}</span></div></header><div className="canvas-content">{active === "overview" ? <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} /> : active === "users" ? <UserManagement /> : <Workspace section={active as any} onCreate={() => setCreateOpen(true)} />}</div></main>{createOpen && <CreatePanel section={active} label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
+  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /><div className="sidebar-note"><span><Sparkles size={15} /> Secure session</span><p>“Small records make a well-run school.”</p></div><div className="account-row"><span className="avatar account">{initials}</span><div><b>{dashboardQuery.data?.identity.displayName ?? user?.name ?? "Signed-in user"}</b><span>{schoolRole ?? "School profile pending"}</span></div><button onClick={() => void logout()} aria-label="Sign out"><LogOut size={17} /></button></div></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><span className="avatar top-avatar">{initials}</span><button className="notice-button" style={{marginLeft:"8px"}} onClick={() => void logout()} aria-label="Sign out" title="Log Out"><LogOut size={18} /></button></div></header><div className="canvas-content">{active === "overview" ? <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} /> : active === "users" ? <UserManagement /> : <Workspace section={active as any} onCreate={() => setCreateOpen(true)} />}</div></main>{createOpen && <CreatePanel section={active} label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
 }
 
 
@@ -217,6 +217,14 @@ function UserManagement() {
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState("student");
   const [password, setPassword] = useState("Password123!");
+  const impersonateMutation = trpc.auth.impersonate.useMutation({
+    onSuccess: (res: any) => {
+      if (res.token) sessionStorage.setItem("manus-cookie", `auth_token=${res.token}`);
+      window.location.href = "/dashboard";
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
 
   return (
     <div className="p-8">
@@ -255,7 +263,8 @@ function UserManagement() {
                 <td className="px-6 py-4">{u.email}</td>
                 <td className="px-6 py-4"><span className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-semibold uppercase">{u.role}</span></td>
                 <td className="px-6 py-4">
-                  <button onClick={() => {
+                  <button onClick={() => impersonateMutation.mutate({ email: u.email })} className="text-blue-500 hover:text-blue-700 text-sm font-medium mr-4">Impersonate</button>
+<button onClick={() => {
                     if(confirm("Are you sure?")) deleteMutation.mutate({ id: u.id });
                   }} className="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
                 </td>

@@ -403,6 +403,28 @@ var authRouter = router({
     }
     return { success: true, role: user.role, token };
   }),
+  impersonate: publicProcedure.input(z2.object({ email: z2.string().email() })).mutation(async ({ input, ctx }) => {
+    if (!ctx.user || ctx.user.role !== "admin") {
+      throw new Error("Only admins can impersonate users.");
+    }
+    const targetUser = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
+    if (!targetUser) throw new Error("User not found");
+    const token = jwt.sign(
+      { id: targetUser._id, email: targetUser.email, role: targetUser.role, name: targetUser.displayName },
+      JWT_SECRET2,
+      { expiresIn: "7d" }
+    );
+    if (ctx.res) {
+      ctx.res.cookie("auth_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1e3
+      });
+    }
+    return { success: true, role: targetUser.role, token };
+  }),
   logout: publicProcedure.mutation(({ ctx }) => {
     if (ctx.res) {
       ctx.res.cookie("auth_token", "", {
