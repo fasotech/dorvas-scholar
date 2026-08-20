@@ -76,10 +76,25 @@ var schoolUserSchema = new mongoose2.Schema({
   isActive: { type: Boolean, default: true }
 }, baseOptions);
 var SchoolUser = mongoose2.models.SchoolUser || mongoose2.model("SchoolUser", schoolUserSchema);
-var studentSchema = new mongoose2.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
+var studentSchema = new mongoose2.Schema({
+  name: String,
+  fullName: String,
+  admissionNumber: String,
+  status: String,
+  state: String,
+  address: String,
+  dob: Date,
+  classId: mongoose2.Schema.Types.ObjectId,
+  isDeleted: { type: Boolean, default: false }
+}, baseOptions);
 var Student = mongoose2.models.Student || mongoose2.model("Student", studentSchema);
-var teacherSchema = new mongoose2.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Teacher = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
+var teacherSchema = new mongoose2.Schema({
+  name: String,
+  fullName: String,
+  status: String,
+  isDeleted: { type: Boolean, default: false }
+}, baseOptions);
+var Teacher2 = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
 var parentSchema = new mongoose2.Schema({ name: String, children: [{ type: mongoose2.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
 var Parent = mongoose2.models.Parent || mongoose2.model("Parent", parentSchema);
 var schoolClassSchema = new mongoose2.Schema({ name: String }, baseOptions);
@@ -179,7 +194,7 @@ async function getScopedFilter(identity, section) {
     return { _id: new Types.ObjectId(identity.profileId) };
   }
   if (identity.role === "teacher") {
-    const teacher = await Teacher.findById(identity.profileId).select("classIds subjectIds").lean();
+    const teacher = await Teacher2.findById(identity.profileId).select("classIds subjectIds").lean();
     if (!teacher) return { _id: null };
     if (section === "results" || section === "exams" || section === "attendance" || section === "students") {
       return { classId: { $in: teacher.classIds || [] } };
@@ -195,7 +210,8 @@ async function getScopedFilter(identity, section) {
 }
 
 // server/services/school.ts
-var dashboardSections = ["students", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"];
+import bcrypt from "bcryptjs";
+var dashboardSections = ["students", "teachers", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"];
 async function getSchoolIdentity(platformUser) {
   const connection = await getMongoConnection();
   if (!connection) return { connection: "unavailable", issue: getMongoConnectionIssue(), linked: false, role: null, displayName: platformUser.name ?? "Signed-in user", profileId: null, schoolUserId: null };
@@ -241,6 +257,7 @@ async function getDashboard(platformUser) {
 }
 var recordDefinitions = {
   students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
+  teachers: { columns: ["Teacher", "Status", "Created"], model: Teacher, fields: ["fullName", "status", "createdAt"] },
   classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
   attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
   exams: { columns: ["Assessment", "Type", "Status", "Starts"], model: Exam, fields: ["title", "examType", "status", "startsAt"] },
@@ -273,6 +290,36 @@ async function createRecord(platformUser, section, payload) {
   if (identity.role !== "admin" && identity.role !== "teacher") throw new Error("Unauthorized");
   const definition = recordDefinitions[section];
   const model = definition.model;
+  if (section === "students" || section === "teachers") {
+    let email = payload.fullName.toLowerCase().replace(/\s+/g, ".") + "@dorvas.edu.ng";
+    let exists = await SchoolUser.findOne({ email });
+    let counter = 1;
+    while (exists) {
+      email = payload.fullName.toLowerCase().replace(/\s+/g, ".") + counter + "@dorvas.edu.ng";
+      exists = await SchoolUser.findOne({ email });
+      counter++;
+    }
+    const hashedPassword = await bcrypt.hash(payload.password || "Password123!", 10);
+    const recordPayload = { ...payload };
+    delete recordPayload.password;
+    recordPayload.name = recordPayload.fullName;
+    const doc2 = await model.create({
+      ...recordPayload,
+      isDeleted: false,
+      schoolId: identity.profileId || "default-school"
+    });
+    await SchoolUser.create({
+      email,
+      password: hashedPassword,
+      displayName: payload.fullName,
+      role: section === "students" ? "student" : "teacher",
+      profileType: section === "students" ? "Student" : "Teacher",
+      profileId: doc2._id,
+      isActive: true,
+      isDeleted: false
+    });
+    return { success: true, id: doc2._id, email };
+  }
   const doc = await model.create({
     ...payload,
     isDeleted: false,
@@ -299,7 +346,7 @@ var schoolRouter = router({
 
 // server/routers/auth.ts
 import { z as z2 } from "zod";
-import bcrypt from "bcryptjs";
+import bcrypt2 from "bcryptjs";
 import jwt from "jsonwebtoken";
 var JWT_SECRET2 = process.env.JWT_SECRET || "default_unsafe_secret";
 var authRouter = router({
@@ -309,7 +356,7 @@ var authRouter = router({
   })).mutation(async ({ input, ctx }) => {
     let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: false, isActive: true });
     if (!user && input.email.toLowerCase() === "adielasam2015@gmail.com") {
-      const hash = await bcrypt.hash(input.password, 10);
+      const hash = await bcrypt2.hash(input.password, 10);
       user = await SchoolUser.create({
         email: "adielasam2015@gmail.com",
         displayName: "Super Admin",
@@ -326,11 +373,11 @@ var authRouter = router({
     if (!user.password) {
       if (input.password === "Admin123!") {
         isValid = true;
-        user.password = await bcrypt.hash("Admin123!", 10);
+        user.password = await bcrypt2.hash("Admin123!", 10);
         await user.save();
       }
     } else {
-      isValid = await bcrypt.compare(input.password, user.password);
+      isValid = await bcrypt2.compare(input.password, user.password);
     }
     if (!isValid) {
       throw new Error("Invalid email or password");
@@ -370,7 +417,7 @@ var authRouter = router({
 
 // server/routers/users.ts
 import { z as z3 } from "zod";
-import bcrypt2 from "bcryptjs";
+import bcrypt3 from "bcryptjs";
 var usersRouter = router({
   listUsers: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
@@ -392,13 +439,13 @@ var usersRouter = router({
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
     const existingUser = await SchoolUser.findOne({ email: input.email.toLowerCase() });
     if (existingUser && !existingUser.isDeleted) throw new Error("Email already in use");
-    const hashedPassword = await bcrypt2.hash(input.password, 10);
+    const hashedPassword = await bcrypt3.hash(input.password, 10);
     let profileId = null;
     if (input.role === "student") {
       const student = await Student.create({ name: input.displayName });
       profileId = student._id;
     } else if (input.role === "teacher") {
-      const teacher = await Teacher.create({ name: input.displayName });
+      const teacher = await Teacher2.create({ name: input.displayName });
       profileId = teacher._id;
     } else if (input.role === "parent") {
       const parent = await Parent.create({ name: input.displayName });

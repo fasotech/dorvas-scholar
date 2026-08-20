@@ -22,6 +22,7 @@ type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
 
 const primaryNav: NavItem[] = [
   { label: "Overview", key: "overview", icon: LayoutDashboard }, { label: "Students", key: "students", icon: Users },
+  { label: "Teachers", key: "teachers", icon: Users },
   { label: "Classes & subjects", key: "classes", icon: School }, { label: "Attendance", key: "attendance", icon: ClipboardCheck },
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
 ];
@@ -90,7 +91,18 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
   // Define fields based on section
   const fields = useMemo(() => {
     switch (section) {
-      case "students": return [{ key: "fullName", label: "Full Name" }, { key: "admissionNumber", label: "Admission Number" }];
+      case "students": return [
+        { key: "fullName", label: "Full Name" }, 
+        { key: "admissionNumber", label: "Admission Number" },
+        { key: "dob", label: "Date of Birth (YYYY-MM-DD)" },
+        { key: "address", label: "Address" },
+        { key: "state", label: "State" },
+        { key: "password", label: "Initial Password (for login)" }
+      ];
+      case "teachers": return [
+        { key: "fullName", label: "Full Name" },
+        { key: "password", label: "Initial Password (for login)" }
+      ];
       case "classes": return [{ key: "name", label: "Class Name" }, { key: "code", label: "Class Code" }, { key: "gradeLevel", label: "Grade Level" }];
       case "attendance": return [{ key: "studentId", label: "Student Name/ID" }, { key: "status", label: "Status (present/absent)" }];
       case "exams": return [{ key: "title", label: "Assessment Title" }, { key: "examType", label: "Type (Quiz, Final)" }];

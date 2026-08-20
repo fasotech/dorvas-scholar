@@ -19,10 +19,25 @@ const schoolUserSchema = new mongoose.Schema({
 }, baseOptions);
 export const SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
 
-const studentSchema = new mongoose.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
+const studentSchema = new mongoose.Schema({ 
+  name: String, 
+  fullName: String,
+  admissionNumber: String,
+  status: String,
+  state: String,
+  address: String,
+  dob: Date,
+  classId: mongoose.Schema.Types.ObjectId,
+  isDeleted: { type: Boolean, default: false } 
+}, baseOptions);
 export const Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
 
-const teacherSchema = new mongoose.Schema({ name: String, isDeleted: { type: Boolean, default: false } }, baseOptions);
+const teacherSchema = new mongoose.Schema({ 
+  name: String,
+  fullName: String,
+  status: String,
+  isDeleted: { type: Boolean, default: false } 
+}, baseOptions);
 export const Teacher = mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
 
 const parentSchema = new mongoose.Schema({ name: String, children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
