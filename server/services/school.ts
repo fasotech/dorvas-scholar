@@ -87,3 +87,22 @@ export async function getSchoolHealth(platformUser: PlatformUser) {
   const identity = await getSchoolIdentity(platformUser);
   return { database: identity.connection, profileLinked: identity.linked, role: identity.role, message: identity.connection === "unavailable" ? "MongoDB Atlas is unavailable. Check MONGODB_URI and Atlas Network Access." : !identity.linked ? "MongoDB is connected, but this OAuth account has not been linked to a school user record." : "Your secure school data connection is ready." };
 }
+
+
+export async function createRecord(platformUser: PlatformUser, section: DashboardSection, payload: any) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.connection !== 'connected') throw new Error('Database not connected');
+  if (identity.role !== 'admin' && identity.role !== 'teacher') throw new Error('Unauthorized');
+  
+  const definition = recordDefinitions[section];
+  const model = definition.model;
+  
+  // Create document
+  const doc = await model.create({
+    ...payload,
+    isDeleted: false,
+    schoolId: identity.profileId || 'default-school'
+  });
+  
+  return { success: true, id: doc._id };
+}

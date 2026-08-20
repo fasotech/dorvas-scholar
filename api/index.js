@@ -267,6 +267,19 @@ async function getRecords(platformUser, section, query) {
   const [records, total] = await Promise.all([definition.model.find(filter).sort({ createdAt: -1 }).limit(50).lean(), definition.model.countDocuments(filter)]);
   return { identity, columns: definition.columns, records: records.map((record) => definition.fields.map((field) => cell(record[field]))), total };
 }
+async function createRecord(platformUser, section, payload) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.connection !== "connected") throw new Error("Database not connected");
+  if (identity.role !== "admin" && identity.role !== "teacher") throw new Error("Unauthorized");
+  const definition = recordDefinitions[section];
+  const model = definition.model;
+  const doc = await model.create({
+    ...payload,
+    isDeleted: false,
+    schoolId: identity.profileId || "default-school"
+  });
+  return { success: true, id: doc._id };
+}
 
 // server/routers/school.ts
 var schoolRouter = router({
@@ -277,6 +290,10 @@ var schoolRouter = router({
   records: publicProcedure.input(z.object({ section: z.enum(dashboardSections), query: z.string().optional().default("") })).query(async ({ ctx, input }) => {
     const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
     return await getRecords({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.query);
+  }),
+  createRecord: publicProcedure.input(z.object({ section: z.enum(dashboardSections), payload: z.any() })).mutation(async ({ ctx, input }) => {
+    const user = ctx.user || { id: "local-dev", name: "Dev User", email: "dev@example.com" };
+    return await createRecord({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.payload);
   })
 });
 
