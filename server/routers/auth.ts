@@ -69,7 +69,7 @@ export const authRouter = router({
         });
       }
 
-      return { success: true, role: user.role };
+      return { success: true, role: user.role, token };
     }),
 
   logout: publicProcedure.mutation(({ ctx }) => {

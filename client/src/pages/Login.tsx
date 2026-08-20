@@ -12,7 +12,8 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: () => {
+    onSuccess: (res: any) => {
+      if (res.token) sessionStorage.setItem("manus-cookie", `auth_token=${res.token}`);
       queryClient.invalidateQueries({ queryKey: [["auth", "me"]] });
       setLocation("/dashboard");
     },

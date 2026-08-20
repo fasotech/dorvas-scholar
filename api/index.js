@@ -397,7 +397,7 @@ var authRouter = router({
         maxAge: 7 * 24 * 60 * 60 * 1e3
       });
     }
-    return { success: true, role: user.role };
+    return { success: true, role: user.role, token };
   }),
   logout: publicProcedure.mutation(({ ctx }) => {
     if (ctx.res) {
@@ -522,7 +522,8 @@ app.use(
     router: appRouter,
     createContext: ({ req, res }) => {
       let user = null;
-      const token = req.cookies?.auth_token;
+      const authHeader = req.headers.authorization;
+      const token = req.cookies?.auth_token || (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null);
       if (token) {
         try {
           user = jwt2.verify(token, JWT_SECRET3);
