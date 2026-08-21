@@ -78,6 +78,12 @@ export async function updateStudentProfile(platformUser: PlatformUser, studentId
   if (role !== 'admin' && role !== 'administrator') throw new Error('Unauthorized: Only admins can edit profiles');
 
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
+  
+  // Keep the login account email in sync if it changed
+  if (updates.email) {
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: { email: updates.email.toLowerCase() } });
+  }
+
   if (identity.schoolUserId) {
     await logAdminAction(identity.schoolUserId, studentId, "Updated Profile", JSON.stringify(updates));
   }
