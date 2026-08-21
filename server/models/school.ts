@@ -37,6 +37,7 @@ const studentSchema = new mongoose.Schema({
   dob: Date,
   classId: mongoose.Schema.Types.ObjectId,
   className: String,
+  profilePicture: String,
   email: String,
   isDeleted: { type: Boolean, default: false } 
 }, baseOptions);

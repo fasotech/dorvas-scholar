@@ -116,8 +116,14 @@ export const authRouter = router({
     return { success: true };
   }),
 
-  me: publicProcedure.query(({ ctx }) => {
-    return ctx.user || null;
+  me: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) return null;
+    const { SchoolUser } = require("../models/school");
+    const user = await SchoolUser.findById(ctx.user.id).lean();
+    if (user) {
+      return { ...ctx.user, profilePicture: user.profilePicture };
+    }
+    return ctx.user;
   })
 });
 

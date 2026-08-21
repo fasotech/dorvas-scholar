@@ -5,9 +5,13 @@ import {
   UserSquare2, ArrowRight, Loader2, PlayCircle, Lock, GraduationCap, Sparkles, CalendarDays
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { LogOut } from "lucide-react";
+import AvatarUploader from "../components/AvatarUploader";
 import { useLocation } from "wouter";
 
 export default function StudentDashboard() {
+  const { logout } = useAuth();
   const [, setLocation] = useLocation();
   const utils = trpc.useContext();
   const query = trpc.studentPortal.getDashboardData.useQuery();
@@ -38,17 +42,23 @@ export default function StudentDashboard() {
     <div className="bg-[#f4f7f6] min-h-screen pb-12 font-sans">
       {/* Premium Profile Header Block */}
       <div className="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-[#40916c] px-8 pt-12 pb-24 shadow-lg relative overflow-hidden text-white">
+        {/* Logout Button */}
+        <button onClick={() => void logout()} className="absolute top-6 right-6 z-20 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full transition-colors" title="Logout">
+          <LogOut size={20} />
+        </button>
         {/* Abstract Background Shapes */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#081c15] opacity-20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
         
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8 relative z-10">
-          <div className="w-36 h-36 bg-white rounded-full border-4 border-white shadow-2xl flex items-center justify-center overflow-hidden shrink-0">
-            {student.photograph ? (
-              <img src={student.photograph} alt="Student" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-5xl text-[#2d6a4f] font-serif">{student.fullName?.charAt(0) || "S"}</span>
-            )}
+          <div className="w-36 h-36 shrink-0 relative group">
+            <AvatarUploader 
+              id={student._id}
+              type="Student"
+              currentPicture={student.profilePicture || student.photograph}
+              initials={student.fullName?.charAt(0) || "S"}
+              size="xl"
+            />
           </div>
           <div className="text-center md:text-left mt-4 md:mt-4">
             <h1 className="text-4xl font-serif tracking-wide font-bold drop-shadow-md">{student.fullName}</h1>

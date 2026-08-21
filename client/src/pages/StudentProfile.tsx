@@ -5,6 +5,7 @@ import {
   XCircle, MessageCircle, FileDown, Eye, AlertCircle, LogIn, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AvatarUploader from "../components/AvatarUploader";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 

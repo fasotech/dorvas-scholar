@@ -4,6 +4,7 @@ import { trpc } from "../lib/trpc";
 
 import { ArrowLeft, UserCircle, LogIn, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AvatarUploader from "../components/AvatarUploader";
 import { toast } from "sonner";
 
 export default function TeacherProfile() {
@@ -65,9 +66,13 @@ export default function TeacherProfile() {
 
       <main className="max-w-5xl mx-auto mt-8 px-6">
         <div className="bg-white rounded-xl shadow-sm border p-6 flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
-          <div className="w-24 h-24 bg-[#1b4332] text-white rounded-full flex items-center justify-center text-3xl font-bold shrink-0">
-            {teacher.fullName.charAt(0)}
-          </div>
+          <AvatarUploader 
+            id={teacher._id}
+            type="Teacher"
+            currentPicture={teacher.profilePicture}
+            initials={teacher.fullName.charAt(0)}
+            size="xl"
+          />
           
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{teacher.fullName}</h2>

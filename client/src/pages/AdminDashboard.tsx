@@ -1,4 +1,4 @@
-import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp } from "lucide-react";
+import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp, CalendarDays } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, CartesianGrid, Legend } from "recharts";
 import { useAuth } from "@/_core/hooks/useAuth";
 

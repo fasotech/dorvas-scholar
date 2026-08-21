@@ -1,7 +1,11 @@
 import { Users, BookOpen, ClipboardList, TrendingUp, CalendarDays, ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AvatarUploader from "../components/AvatarUploader";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { LogOut } from "lucide-react";
 
 export default function TeacherDashboard({ summary, onNavigate }: { summary: any, onNavigate: (s: string) => void }) {
+  const { user, logout } = useAuth();
   if (summary?.identity?.connection !== "connected") {
     return (
       <div className="p-12 text-center text-gray-500 font-sans">
@@ -16,12 +20,26 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
   return (
     <div className="bg-[#fcfdfc] min-h-full p-8 font-sans" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold mb-4 uppercase tracking-widest">
-          <BookOpen size={12} /> Educator Portal
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold mb-4 uppercase tracking-widest">
+            <BookOpen size={12} /> Educator Portal
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome to your classroom</h1>
+          <p className="text-gray-500 mt-2">Manage your students, upload notes, and review assessments.</p>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome to your classroom</h1>
-        <p className="text-gray-500 mt-2">Manage your students, upload notes, and review assessments.</p>
+        <div className="flex items-center gap-4">
+          <AvatarUploader 
+            id={summary?.identity?.profileId}
+            type="Teacher"
+            currentPicture={user?.profilePicture}
+            initials={user?.displayName?.charAt(0) || "T"}
+            size="md"
+          />
+          <button onClick={() => void logout()} className="p-2 text-gray-500 hover:text-red-600 transition-colors" title="Logout">
+            <LogOut size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">

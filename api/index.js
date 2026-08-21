@@ -92,6 +92,7 @@ var init_school = __esm({
       dob: Date,
       classId: mongoose.Schema.Types.ObjectId,
       className: String,
+      profilePicture: String,
       email: String,
       isDeleted: { type: Boolean, default: false }
     }, baseOptions);
@@ -223,6 +224,60 @@ var init_school = __esm({
   }
 });
 
+// server/services/schoolAccess.ts
+var schoolAccess_exports = {};
+__export(schoolAccess_exports, {
+  canAccessSection: () => canAccessSection,
+  getScopedFilter: () => getScopedFilter
+});
+import { Types } from "mongoose";
+function canAccessSection(role, section) {
+  if (!role) return false;
+  if (role === "admin") return true;
+  if (role === "teacher" && section === "fees") return false;
+  if (section === "settings") return false;
+  if (role === "student" && (section === "results" || section === "students" || section === "attendance" || section === "exams")) return true;
+  if (role === "student") return false;
+  if (role === "parent" && (section === "attendance" || section === "results" || section === "students" || section === "fees" || section === "exams")) return true;
+  if (role === "parent") return false;
+  return true;
+}
+async function getScopedFilter(identity, section) {
+  if (!identity || !identity.linked) return { _id: null };
+  if (identity.role === "admin") return {};
+  if (identity.role === "student") {
+    const student = await Student.findById(identity.profileId).select("classId").lean();
+    if (!student) return { _id: null };
+    if (section === "attendance" || section === "results" || section === "fees") {
+      return { studentId: new Types.ObjectId(identity.profileId) };
+    }
+    if (section === "exams" || section === "classes") {
+      return { classId: student.classId };
+    }
+    return { _id: new Types.ObjectId(identity.profileId) };
+  }
+  if (identity.role === "teacher") {
+    const teacher = await Teacher.findById(identity.profileId).select("classIds subjectIds").lean();
+    if (!teacher) return { _id: null };
+    if (section === "results" || section === "exams" || section === "attendance" || section === "students") {
+      return { classId: { $in: teacher.classIds || [] } };
+    }
+    return { _id: new Types.ObjectId(identity.profileId) };
+  }
+  if (identity.role === "parent") {
+    const parent = await Parent.findById(identity.profileId).select("studentIds").lean();
+    if (!parent || !parent.studentIds || parent.studentIds.length === 0) return { _id: null };
+    return { studentId: { $in: parent.studentIds } };
+  }
+  return {};
+}
+var init_schoolAccess = __esm({
+  "server/services/schoolAccess.ts"() {
+    "use strict";
+    init_school();
+  }
+});
+
 // server/vercel.ts
 import express from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
@@ -287,41 +342,7 @@ function getMongoConnectionIssue() {
 
 // server/services/school.ts
 init_school();
-
-// server/services/schoolAccess.ts
-init_school();
-import { Types } from "mongoose";
-async function getScopedFilter(identity, section) {
-  if (!identity || !identity.linked) return { _id: null };
-  if (identity.role === "admin") return {};
-  if (identity.role === "student") {
-    const student = await Student.findById(identity.profileId).select("classId").lean();
-    if (!student) return { _id: null };
-    if (section === "attendance" || section === "results" || section === "fees") {
-      return { studentId: new Types.ObjectId(identity.profileId) };
-    }
-    if (section === "exams" || section === "classes") {
-      return { classId: student.classId };
-    }
-    return { _id: new Types.ObjectId(identity.profileId) };
-  }
-  if (identity.role === "teacher") {
-    const teacher = await Teacher.findById(identity.profileId).select("classIds subjectIds").lean();
-    if (!teacher) return { _id: null };
-    if (section === "results" || section === "exams" || section === "attendance" || section === "students") {
-      return { classId: { $in: teacher.classIds || [] } };
-    }
-    return { _id: new Types.ObjectId(identity.profileId) };
-  }
-  if (identity.role === "parent") {
-    const parent = await Parent.findById(identity.profileId).select("studentIds").lean();
-    if (!parent || !parent.studentIds || parent.studentIds.length === 0) return { _id: null };
-    return { studentId: { $in: parent.studentIds } };
-  }
-  return {};
-}
-
-// server/services/school.ts
+init_schoolAccess();
 import bcrypt from "bcryptjs";
 var dashboardSections = ["students", "teachers", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"];
 async function getSchoolIdentity(platformUser) {
@@ -554,6 +575,34 @@ var schoolRouter = router({
     if (!ctx.user) throw new Error("Auth failed");
     return await getStudentProfile(ctx.user, input.id);
   }),
+  updateProfilePicture: publicProcedure.input(z.object({ id: z.string().optional(), base64Image: z.string(), type: z.string().optional() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    const { SchoolUser: SchoolUser2, Student: Student2, Teacher: Teacher2 } = (init_school(), __toCommonJS(school_exports));
+    let targetProfileId = null;
+    let targetType = null;
+    if (input.id) {
+      const identity = await (init_schoolAccess(), __toCommonJS(schoolAccess_exports)).getSchoolIdentity(ctx.user);
+      if (identity.role !== "admin" && identity.role !== "administrator") {
+        throw new Error("Unauthorized to edit other profiles");
+      }
+      targetProfileId = input.id;
+      targetType = input.type || "Student";
+    } else {
+      const schoolUser = await SchoolUser2.findOne({ email: ctx.user.email });
+      if (!schoolUser) throw new Error("User not found");
+      targetProfileId = schoolUser.profileId;
+      targetType = schoolUser.profileType;
+      schoolUser.profilePicture = input.base64Image;
+      await schoolUser.save();
+    }
+    if (targetType === "Student" || targetType === "student") {
+      await Student2.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
+    } else if (targetType === "Teacher" || targetType === "teacher") {
+      await Teacher2.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
+    } else if (targetType === "Admin" || targetType === "admin") {
+    }
+    return { success: true };
+  }),
   updateStudentProfile: publicProcedure.input(z.object({ id: z.string(), updates: z.any() })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");
     return await updateStudentProfile(ctx.user, input.id, input.updates);
@@ -662,8 +711,14 @@ var authRouter = router({
     }
     return { success: true };
   }),
-  me: publicProcedure.query(({ ctx }) => {
-    return ctx.user || null;
+  me: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) return null;
+    const { SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const user = await SchoolUser2.findById(ctx.user.id).lean();
+    if (user) {
+      return { ...ctx.user, profilePicture: user.profilePicture };
+    }
+    return ctx.user;
   })
 });
 
