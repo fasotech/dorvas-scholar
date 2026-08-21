@@ -22,7 +22,7 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
   };
 
   return (
-    <div className="bg-[#f8f9fa] min-h-full p-8 font-sans">
+    <div className="bg-[#f8f9fa] min-h-full p-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>
@@ -93,38 +93,8 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
           )}
         </div>
 
-        {/* Quick Actions / System Health */}
+        {/* Quick Actions */}
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
-            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-5">System Health</h3>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-sm font-semibold text-gray-700">Database Connection</span>
-                </div>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Optimal</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-sm font-semibold text-gray-700">API Latency</span>
-                </div>
-                <span className="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded">~45ms</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-sm font-semibold text-gray-700">Storage Used</span>
-                </div>
-                <span className="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded">2.4 GB</span>
-              </div>
-            </div>
-          </div>
-          
           <div className="bg-[#1b4332] rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
             <h3 className="text-sm font-bold text-emerald-200 uppercase tracking-wider mb-2">School Calendar</h3>

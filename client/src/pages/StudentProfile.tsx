@@ -104,6 +104,7 @@ export default function StudentProfile({ params }: { params: { studentId: string
       dob: student.dob ? new Date(student.dob).toISOString().split('T')[0] : "",
       gender: student.gender || "",
       parentContact: student.parentContact || "",
+      className: student.className || "",
       address: student.address || "",
       academicSession: student.academicSession || "",
       feeBalance: student.feeBalance || 0
@@ -224,6 +225,7 @@ export default function StudentProfile({ params }: { params: { studentId: string
         <div className="bg-white rounded-xl shadow-sm border p-6 min-h-[300px]">
           {activeTab === "overview" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+              <div><label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Class</label><div className="font-medium">{student.className || "—"}</div></div>
               <div><label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Email</label><div className="font-medium">{student.email || "—"}</div></div>
               <div><label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Telephone</label><div className="font-medium">{student.telephone || "—"}</div></div>
               <div><label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Date of Birth</label><div className="font-medium">{student.dob ? new Date(student.dob).toLocaleDateString() : "—"}</div></div>
@@ -277,6 +279,10 @@ export default function StudentProfile({ params }: { params: { studentId: string
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                   <input required className="w-full p-2 border rounded" value={editForm.fullName} onChange={e => setEditForm({...editForm, fullName: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                  <input className="w-full p-2 border rounded" value={editForm.className || ""} onChange={e => setEditForm({...editForm, className: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
