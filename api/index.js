@@ -224,24 +224,45 @@ var init_school = __esm({
   }
 });
 
-// server/services/schoolAccess.ts
-var schoolAccess_exports = {};
-__export(schoolAccess_exports, {
-  canAccessSection: () => canAccessSection,
-  getScopedFilter: () => getScopedFilter
-});
-import { Types } from "mongoose";
-function canAccessSection(role, section) {
-  if (!role) return false;
-  if (role === "admin") return true;
-  if (role === "teacher" && section === "fees") return false;
-  if (section === "settings") return false;
-  if (role === "student" && (section === "results" || section === "students" || section === "attendance" || section === "exams")) return true;
-  if (role === "student") return false;
-  if (role === "parent" && (section === "attendance" || section === "results" || section === "students" || section === "fees" || section === "exams")) return true;
-  if (role === "parent") return false;
-  return true;
+// server/mongo.ts
+import mongoose2 from "mongoose";
+async function getMongoConnection() {
+  if (mongoose2.connection.readyState === 1) return mongoose2.connection;
+  if (Date.now() < nextRetryAt) return null;
+  const uri = process.env.MONGODB_URI;
+  if (!uri || !/^mongodb(\+srv)?:\/\//.test(uri)) {
+    lastConnectionError = "MONGODB_URI is missing or is not a MongoDB connection URI.";
+    return null;
+  }
+  try {
+    await mongoose2.connect(uri, {
+      connectTimeoutMS: 8e3,
+      serverSelectionTimeoutMS: 8e3,
+      maxPoolSize: 10
+    });
+    lastConnectionError = null;
+    return mongoose2.connection;
+  } catch (error) {
+    lastConnectionError = error instanceof Error ? error.message : "MongoDB connection failed.";
+    nextRetryAt = Date.now() + 3e4;
+    await mongoose2.disconnect().catch(() => void 0);
+    return null;
+  }
 }
+function getMongoConnectionIssue() {
+  return lastConnectionError;
+}
+var nextRetryAt, lastConnectionError;
+var init_mongo = __esm({
+  "server/mongo.ts"() {
+    "use strict";
+    nextRetryAt = 0;
+    lastConnectionError = null;
+  }
+});
+
+// server/services/schoolAccess.ts
+import { Types } from "mongoose";
 async function getScopedFilter(identity, section) {
   if (!identity || !identity.linked) return { _id: null };
   if (identity.role === "admin") return {};
@@ -278,84 +299,23 @@ var init_schoolAccess = __esm({
   }
 });
 
-// server/vercel.ts
-import express from "express";
-import * as trpcExpress from "@trpc/server/adapters/express";
-import cookieParser from "cookie-parser";
-import jwt2 from "jsonwebtoken";
-
-// server/_core/trpc.ts
-import { initTRPC } from "@trpc/server";
-import superjson from "superjson";
-var JWT_SECRET = process.env.JWT_SECRET || "default_unsafe_secret";
-var t = initTRPC.context().create({ transformer: superjson });
-var router = t.router;
-var publicProcedure = t.procedure;
-var protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new Error("UNAUTHORIZED");
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user
-    }
-  });
-});
-
-// server/_core/systemRouter.ts
-var systemRouter = router({});
-
-// server/services/studentProfile.ts
-init_school();
-
-// server/mongo.ts
-import mongoose2 from "mongoose";
-var nextRetryAt = 0;
-var lastConnectionError = null;
-async function getMongoConnection() {
-  if (mongoose2.connection.readyState === 1) return mongoose2.connection;
-  if (Date.now() < nextRetryAt) return null;
-  const uri = process.env.MONGODB_URI;
-  if (!uri || !/^mongodb(\+srv)?:\/\//.test(uri)) {
-    lastConnectionError = "MONGODB_URI is missing or is not a MongoDB connection URI.";
-    return null;
-  }
-  try {
-    await mongoose2.connect(uri, {
-      connectTimeoutMS: 8e3,
-      serverSelectionTimeoutMS: 8e3,
-      maxPoolSize: 10
-    });
-    lastConnectionError = null;
-    return mongoose2.connection;
-  } catch (error) {
-    lastConnectionError = error instanceof Error ? error.message : "MongoDB connection failed.";
-    nextRetryAt = Date.now() + 3e4;
-    await mongoose2.disconnect().catch(() => void 0);
-    return null;
-  }
-}
-function getMongoConnectionIssue() {
-  return lastConnectionError;
-}
-
 // server/services/school.ts
-init_school();
-init_schoolAccess();
+var school_exports2 = {};
+__export(school_exports2, {
+  createRecord: () => createRecord,
+  dashboardSections: () => dashboardSections,
+  getDashboard: () => getDashboard,
+  getRecords: () => getRecords,
+  getSchoolHealth: () => getSchoolHealth,
+  getSchoolIdentity: () => getSchoolIdentity
+});
 import bcrypt from "bcryptjs";
-var dashboardSections = ["students", "teachers", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"];
 async function getSchoolIdentity(platformUser) {
   const connection = await getMongoConnection();
   if (!connection) return { connection: "unavailable", issue: getMongoConnectionIssue(), linked: false, role: null, displayName: platformUser.name ?? "Signed-in user", profileId: null, schoolUserId: null };
   const schoolUser = await SchoolUser.findOne({ isDeleted: { $ne: true }, isActive: { $ne: false }, $or: [{ oauthOpenId: platformUser.openId }, ...platformUser.email ? [{ email: platformUser.email.toLowerCase() }] : []] }).lean();
   return { connection: "connected", issue: null, linked: Boolean(schoolUser), role: schoolUser?.role ?? null, displayName: schoolUser?.displayName ?? platformUser.name ?? "Signed-in user", profileId: schoolUser?.profileId?.toString() ?? null, schoolUserId: schoolUser?._id?.toString() ?? null };
 }
-var todayStart = () => {
-  const value = /* @__PURE__ */ new Date();
-  value.setHours(0, 0, 0, 0);
-  return value;
-};
 async function getDashboard(platformUser) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
@@ -398,18 +358,6 @@ async function getDashboard(platformUser) {
     charts: { classDistribution: chartData, population: populationData }
   };
 }
-var recordDefinitions = {
-  students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
-  teachers: { columns: ["Teacher", "Status", "Created"], model: Teacher, fields: ["fullName", "status", "createdAt"] },
-  classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
-  attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
-  exams: { columns: ["Assessment", "Type", "Status", "Starts"], model: Exam, fields: ["title", "examType", "status", "startsAt"] },
-  results: { columns: ["Student", "Score", "Grade", "Status"], model: Result, fields: ["studentId", "percentage", "grade", "status"] },
-  fees: { columns: ["Fee", "Amount", "Due date", "Status"], model: Fee, fields: ["name", "totalAmount", "dueDate", "status"] },
-  announcements: { columns: ["Announcement", "Priority", "Published", "Status"], model: Announcement, fields: ["title", "priority", "publishAt", "isPublished"] },
-  calendar: { columns: ["Assessment", "Type", "Starts", "Status"], model: Exam, fields: ["title", "examType", "startsAt", "status"] },
-  settings: { columns: ["Academic session", "Starts", "Ends", "Status"], model: AcademicSession, fields: ["name", "startDate", "endDate", "status"] }
-};
 function cell(value) {
   if (value === null || value === void 0 || value === "") return "\u2014";
   if (value instanceof Date) return value.toLocaleDateString();
@@ -426,6 +374,10 @@ async function getRecords(platformUser, section, query) {
   const filter = { $and: [{ isDeleted: false }, scope, textFilter] };
   const [records, total] = await Promise.all([definition.model.find(filter).sort({ createdAt: -1 }).limit(50).lean(), definition.model.countDocuments(filter)]);
   return { identity, columns: definition.columns, records: records.map((record) => ({ id: record._id, cells: definition.fields.map((field) => cell(record[field])) })), total };
+}
+async function getSchoolHealth(platformUser) {
+  const identity = await getSchoolIdentity(platformUser);
+  return { database: identity.connection, profileLinked: identity.linked, role: identity.role, message: identity.connection === "unavailable" ? "MongoDB Atlas is unavailable. Check MONGODB_URI and Atlas Network Access." : !identity.linked ? "MongoDB is connected, but this OAuth account has not been linked to a school user record." : "Your secure school data connection is ready." };
 }
 async function createRecord(platformUser, section, payload) {
   const identity = await getSchoolIdentity(platformUser);
@@ -473,8 +425,65 @@ async function createRecord(platformUser, section, payload) {
   });
   return { success: true, id: doc._id };
 }
+var dashboardSections, todayStart, recordDefinitions;
+var init_school2 = __esm({
+  "server/services/school.ts"() {
+    "use strict";
+    init_mongo();
+    init_school();
+    init_schoolAccess();
+    dashboardSections = ["students", "teachers", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"];
+    todayStart = () => {
+      const value = /* @__PURE__ */ new Date();
+      value.setHours(0, 0, 0, 0);
+      return value;
+    };
+    recordDefinitions = {
+      students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
+      teachers: { columns: ["Teacher", "Status", "Created"], model: Teacher, fields: ["fullName", "status", "createdAt"] },
+      classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
+      attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
+      exams: { columns: ["Assessment", "Type", "Status", "Starts"], model: Exam, fields: ["title", "examType", "status", "startsAt"] },
+      results: { columns: ["Student", "Score", "Grade", "Status"], model: Result, fields: ["studentId", "percentage", "grade", "status"] },
+      fees: { columns: ["Fee", "Amount", "Due date", "Status"], model: Fee, fields: ["name", "totalAmount", "dueDate", "status"] },
+      announcements: { columns: ["Announcement", "Priority", "Published", "Status"], model: Announcement, fields: ["title", "priority", "publishAt", "isPublished"] },
+      calendar: { columns: ["Assessment", "Type", "Starts", "Status"], model: Exam, fields: ["title", "examType", "startsAt", "status"] },
+      settings: { columns: ["Academic session", "Starts", "Ends", "Status"], model: AcademicSession, fields: ["name", "startDate", "endDate", "status"] }
+    };
+  }
+});
+
+// server/vercel.ts
+import express from "express";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import cookieParser from "cookie-parser";
+import jwt2 from "jsonwebtoken";
+
+// server/_core/trpc.ts
+import { initTRPC } from "@trpc/server";
+import superjson from "superjson";
+var JWT_SECRET = process.env.JWT_SECRET || "default_unsafe_secret";
+var t = initTRPC.context().create({ transformer: superjson });
+var router = t.router;
+var publicProcedure = t.procedure;
+var protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new Error("UNAUTHORIZED");
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user
+    }
+  });
+});
+
+// server/_core/systemRouter.ts
+var systemRouter = router({});
 
 // server/services/studentProfile.ts
+init_school();
+init_school2();
 async function getStudentProfile(platformUser, studentId) {
   const identity = await getSchoolIdentity(platformUser);
   if (identity.connection !== "connected") throw new Error("Database not connected");
@@ -560,6 +569,7 @@ async function deleteStudent(platformUser, studentId) {
 
 // server/routers/school.ts
 import { z } from "zod";
+init_school2();
 var schoolRouter = router({
   dashboard: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
@@ -587,7 +597,7 @@ var schoolRouter = router({
     let targetProfileId = null;
     let targetType = null;
     if (input.id) {
-      const identity = await (init_schoolAccess(), __toCommonJS(schoolAccess_exports)).getSchoolIdentity(ctx.user);
+      const identity = await (init_school2(), __toCommonJS(school_exports2)).getSchoolIdentity(ctx.user);
       if (identity.role !== "admin" && identity.role !== "administrator") {
         throw new Error("Unauthorized to edit other profiles");
       }
@@ -608,6 +618,19 @@ var schoolRouter = router({
     } else if (targetType === "Admin" || targetType === "admin") {
     }
     return { success: true };
+  }),
+  updateTeacherProfile: publicProcedure.input(z.object({ id: z.string(), updates: z.any() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    const { Teacher: Teacher2, SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const identity = await (init_school2(), __toCommonJS(school_exports2)).getSchoolIdentity(ctx.user);
+    if (identity.role !== "admin" && identity.role !== "administrator" && identity.profileId !== input.id) {
+      throw new Error("Unauthorized to edit this teacher");
+    }
+    const teacher = await Teacher2.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });
+    if (input.updates.email) {
+      await SchoolUser2.updateMany({ profileId: input.id }, { $set: { email: input.updates.email.toLowerCase() } });
+    }
+    return teacher;
   }),
   updateStudentProfile: publicProcedure.input(z.object({ id: z.string(), updates: z.any() })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");

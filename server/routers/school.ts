@@ -43,7 +43,7 @@ export const schoolRouter = router({
 
       if (input.id) {
         // Admin updating someone else
-        const identity = await require("../services/schoolAccess").getSchoolIdentity(ctx.user as any);
+        const identity = await require("../services/school").getSchoolIdentity(ctx.user as any);
         if (identity.role !== 'admin' && identity.role !== 'administrator') {
           throw new Error("Unauthorized to edit other profiles");
         }
@@ -70,6 +70,29 @@ export const schoolRouter = router({
       }
       
       return { success: true };
+    }),
+
+  
+  updateTeacherProfile: publicProcedure
+    .input(z.object({ id: z.string(), updates: z.any() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { Teacher, SchoolUser } = require("../models/school");
+      
+      const identity = await require("../services/school").getSchoolIdentity(ctx.user as any);
+      
+      // Admins can edit any teacher, Teachers can edit themselves
+      if (identity.role !== 'admin' && identity.role !== 'administrator' && identity.profileId !== input.id) {
+        throw new Error("Unauthorized to edit this teacher");
+      }
+
+      const teacher = await Teacher.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });
+      
+      if (input.updates.email) {
+        await SchoolUser.updateMany({ profileId: input.id }, { $set: { email: input.updates.email.toLowerCase() } });
+      }
+
+      return teacher;
     }),
 
   updateStudentProfile: publicProcedure
