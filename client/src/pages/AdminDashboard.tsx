@@ -1,5 +1,5 @@
 import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 
 export default function AdminDashboard({ summary, onNavigate }: { summary: any; onNavigate: (section: string) => void }) {
   if (summary?.identity?.connection !== "connected" || !summary?.identity?.linked) {
@@ -13,6 +13,7 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
 
   const { metrics = [], charts } = summary;
   const classDist = charts?.classDistribution || [];
+  const popData = charts?.population || [];
 
   const getIcon = (key: string) => {
     if (key === "students") return <Users size={20} className="text-[#2d6a4f]" />;
@@ -95,6 +96,29 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
 
         {/* Quick Actions */}
         <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
+            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-5">School Population</h3>
+            <div className="h-48">
+              {popData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-gray-400 text-xs bg-gray-50 rounded border border-dashed">No data</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={popData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5}>
+                      {popData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={index === 0 ? "#1b4332" : "#52b788"} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium"><span className="w-2.5 h-2.5 rounded-full bg-[#1b4332]"></span> Students</div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium"><span className="w-2.5 h-2.5 rounded-full bg-[#52b788]"></span> Teachers</div>
+            </div>
+          </div>
           <div className="bg-[#1b4332] rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
             <h3 className="text-sm font-bold text-emerald-200 uppercase tracking-wider mb-2">School Calendar</h3>

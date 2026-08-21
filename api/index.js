@@ -352,6 +352,10 @@ async function getDashboard(platformUser) {
     { $group: { _id: "$className", count: { $sum: 1 } } }
   ]);
   const chartData = classDistribution.map((d) => ({ name: d._id || "Unassigned", value: d.count }));
+  const populationData = [
+    { name: "Students", value: activeStudents },
+    { name: "Teachers", value: totalTeachers }
+  ];
   return {
     identity,
     metrics: [
@@ -361,7 +365,7 @@ async function getDashboard(platformUser) {
     ],
     upcoming: upcoming.map((exam) => ({ id: exam._id.toString(), title: exam.title, type: exam.examType, startsAt: exam.startsAt ?? null })),
     followUps: [],
-    charts: { classDistribution: chartData }
+    charts: { classDistribution: chartData, population: populationData }
   };
 }
 var recordDefinitions = {
@@ -534,6 +538,12 @@ var schoolRouter = router({
     if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
     const user = ctx.user;
     return await getRecords({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.query);
+  }),
+  getTeacherProfile: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    const { Teacher: Teacher2 } = (init_school(), __toCommonJS(school_exports));
+    const teacher = await Teacher2.findById(input.id).lean();
+    if (!teacher) throw new Error("Teacher not found");
+    return { teacher };
   }),
   getStudentProfile: publicProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");

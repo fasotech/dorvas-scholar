@@ -4,6 +4,7 @@
  */
 import { useAuth } from "@/_core/hooks/useAuth";
 import StudentDashboard from "./StudentDashboard";
+import TeacherDashboard from "./TeacherDashboard";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
@@ -159,6 +160,7 @@ import AdminDashboard from "./AdminDashboard";
 
 function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
   if (role === "Student") return <StudentDashboard />;
+  if (role === "Teacher") return <TeacherDashboard summary={summary} onNavigate={onNavigate} />;
   
   if (isLoading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-[#1b4332]" size={32} /></div>;
@@ -177,11 +179,11 @@ function Workspace({ section, onCreate }: { section: ProtectedSection; onCreate:
   return <section className="workspace"><div className="workspace-hero"><div><p className="eyebrow"><span /> {data.eyebrow}</p><h1>{data.title}</h1><p className="intro">{data.description}</p></div><Button onClick={onCreate}><Plus size={17} /> {data.primary}</Button></div><div className="workspace-metrics"><article><p>Live records</p><strong>{recordsQuery.isLoading ? "…" : recordsQuery.data?.total ?? 0}</strong><span>{databaseUnavailable ? "Awaiting Atlas network access" : "Protected MongoDB query"}</span></article><article><p>Access rule</p><strong>{recordsQuery.data?.identity.role ?? "—"}</strong><span>{recordsQuery.data?.identity.linked ? "School profile linked" : "Profile link required"}</span></article><article><p>Query state</p><strong>{recordsQuery.isError ? "Blocked" : databaseUnavailable ? "Offline" : "Ready"}</strong><span>{recordsQuery.isError ? "Your role may not access this section" : "Search is server-side"}</span></article></div><article className="ledger-card table-card"><div className="table-toolbar"><div><p className="eyebrow"><span /> Current records</p><h2>Find what you need, quickly.</h2></div><label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search this section" /><kbd>⌘ K</kbd></label></div><div className="table-wrap"><table><thead><tr>{columns.map((header: string) => <th key={header}>{header}</th>)}</tr></thead><tbody>{recordsQuery.isLoading ? <tr><td colSpan={Math.max(columns.length, 1)} className="empty-row"><Loader2 size={16} className="animate-spin" /> Loading protected records…</td></tr> : recordsQuery.isError ? <tr><td colSpan={Math.max(columns.length, 1)} className="empty-row">{recordsQuery.error.message}</td></tr> : records.length ? records.map((rowItem: any, rowIndex: number) => {
   const cells = Array.isArray(rowItem) ? rowItem : rowItem.cells;
   const id = Array.isArray(rowItem) ? null : rowItem.id;
-  const isClickable = id && section === "students";
+  const isClickable = id && (section === "students" || section === "teachers");
   return (
     <tr 
       key={id || rowIndex} 
-      onClick={() => isClickable && window.location.assign("/students/" + id)}
+      onClick={() => { if (!isClickable) return; if (section === "students") window.location.assign("/students/" + id); else if (section === "teachers") window.location.assign("/teachers/" + id); }}
       style={{ cursor: isClickable ? "pointer" : "default" }}
       className={isClickable ? "hover:bg-gray-50 transition-colors" : ""}
     >

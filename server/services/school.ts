@@ -41,6 +41,10 @@ export async function getDashboard(platformUser: PlatformUser) {
   ]);
   
   const chartData = classDistribution.map(d => ({ name: d._id || 'Unassigned', value: d.count }));
+  const populationData = [
+    { name: 'Students', value: activeStudents },
+    { name: 'Teachers', value: totalTeachers }
+  ];
 
   return {
     identity,
@@ -51,7 +55,7 @@ export async function getDashboard(platformUser: PlatformUser) {
     ],
     upcoming: upcoming.map((exam: any) => ({ id: exam._id.toString(), title: exam.title, type: exam.examType, startsAt: exam.startsAt ?? null })),
     followUps: [],
-    charts: { classDistribution: chartData }
+    charts: { classDistribution: chartData, population: populationData }
   };
 }
 

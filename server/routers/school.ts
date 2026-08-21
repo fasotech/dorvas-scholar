@@ -17,6 +17,14 @@ export const schoolRouter = router({
       return await getRecords({ openId: user.id || (user as any).openId || user.email, email: user.email, name: user.name }, input.section, input.query);
     }),
   
+  getTeacherProfile: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { Teacher } = require("../models/school");
+      const teacher = await Teacher.findById(input.id).lean();
+      if (!teacher) throw new Error("Teacher not found");
+      return { teacher };
+    }),
   getStudentProfile: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
