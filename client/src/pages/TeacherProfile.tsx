@@ -25,6 +25,21 @@ export default function TeacherProfile() {
     onError: (err) => toast.error(err.message)
   });
 
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  
+  const trpcContext = trpc.useContext();
+  const updateMutation = trpc.school.updateTeacherProfile.useMutation({
+    onSuccess: () => {
+      toast.success("Profile updated successfully!");
+      setIsEditModalOpen(false);
+      trpcContext.school.getTeacherProfile.invalidate({ id: teacherId! });
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+
   if (query.isLoading) {
     return <div className="p-12 flex justify-center items-center min-h-screen"><Loader2 className="animate-spin mr-3 text-[#2d6a4f]" /> Loading profile...</div>;
   }
@@ -40,18 +55,7 @@ export default function TeacherProfile() {
   }
 
   const { teacher } = query.data;
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState<any>({});
   
-  const trpcContext = trpc.useContext();
-  const updateMutation = trpc.school.updateTeacherProfile.useMutation({
-    onSuccess: () => {
-      toast.success("Profile updated successfully!");
-      setIsEditModalOpen(false);
-      trpcContext.school.getTeacherProfile.invalidate({ id: params.teacherId });
-    },
-    onError: (err) => toast.error(err.message)
-  });
   
   const openEditModal = () => {
     setEditForm({
