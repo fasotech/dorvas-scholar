@@ -1,7 +1,12 @@
 import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, CartesianGrid, Legend } from "recharts";
+import { useAuth } from "@/_core/hooks/useAuth";
+
+const COLORS = ['#3498db', '#2ecc71', '#f1c40f', '#1abc9c', '#9b59b6', '#e74c3c', '#e67e22', '#34495e'];
 
 export default function AdminDashboard({ summary, onNavigate }: { summary: any; onNavigate: (section: string) => void }) {
+  const { user } = useAuth();
+  
   if (summary?.identity?.connection !== "connected" || !summary?.identity?.linked) {
     return (
       <div className="p-12 text-center text-gray-500 font-sans">
@@ -11,121 +16,104 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
     );
   }
 
-  const { metrics = [], charts } = summary;
+  const { charts } = summary;
   const classDist = charts?.classDistribution || [];
   const popData = charts?.population || [];
-
-  const getIcon = (key: string) => {
-    if (key === "students") return <Users size={20} className="text-[#2d6a4f]" />;
-    if (key === "classes") return <School size={20} className="text-[#2d6a4f]" />;
-    if (key === "teachers") return <GraduationCap size={20} className="text-[#2d6a4f]" />;
-    return <Activity size={20} className="text-[#2d6a4f]" />;
-  };
+  
+  // Extract counts manually to match Educare style blocks
+  const activeStudents = popData.find((p: any) => p.name === 'Students')?.value || 0;
+  const maleStudents = popData.find((p: any) => p.name === 'Male Students')?.value || 0;
+  const femaleStudents = popData.find((p: any) => p.name === 'Female Students')?.value || 0;
+  const totalTeachers = popData.find((p: any) => p.name === 'Teachers')?.value || 0;
+  const totalClasses = summary?.metrics?.find((m: any) => m.key === 'classes')?.value || 0;
 
   return (
-    <div className="bg-[#f8f9fa] min-h-full p-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="bg-[#f4f7f6] min-h-full p-8 font-sans" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header Section */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Administrative Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Real-time statistics and school activity.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">Welcome {user?.displayName || "Administrator"}</h1>
         </div>
-        <div className="flex gap-3">
-          <button onClick={() => onNavigate("students")} className="px-4 py-2 bg-white border border-gray-200 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 text-gray-700 transition-colors">
-            Manage Students
-          </button>
-          <button onClick={() => onNavigate("teachers")} className="px-4 py-2 bg-white border border-gray-200 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 text-gray-700 transition-colors">
-            Manage Teachers
+        <div className="flex gap-2">
+           <button className="px-4 py-2 bg-blue-500 text-white text-xs font-bold rounded shadow-sm hover:bg-blue-600 transition-colors">
+            Quick Guide
           </button>
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {metrics.map((m: any) => (
-          <div key={m.key} className="bg-white rounded-xl p-6 border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-[#e9ecef] rounded-lg">
-                {getIcon(m.key)}
-              </div>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full flex items-center gap-1">
-                <TrendingUp size={12} /> Live
-              </span>
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">{m.value}</h3>
-            <p className="text-sm font-semibold text-gray-700">{m.label}</p>
-            <p className="text-xs text-gray-500 mt-1">{m.detail}</p>
-          </div>
-        ))}
+      {/* Colorful Educare-style Metrics Row */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-0 rounded-lg overflow-hidden shadow-sm mb-8 bg-white border border-gray-100">
+        <div className="bg-[#3498db] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
+          <span className="text-4xl font-bold">{activeStudents}</span>
+          <span className="text-xs uppercase mt-1 opacity-90">Active Students</span>
+        </div>
+        <div className="bg-[#2ecc71] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
+          <span className="text-4xl font-bold">{maleStudents}</span>
+          <span className="text-xs uppercase mt-1 opacity-90">Male Students</span>
+        </div>
+        <div className="bg-[#f1c40f] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
+          <span className="text-4xl font-bold">{femaleStudents}</span>
+          <span className="text-xs uppercase mt-1 opacity-90">Female Students</span>
+        </div>
+        <div className="bg-[#1abc9c] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("classes")}>
+          <span className="text-4xl font-bold">{totalClasses}</span>
+          <span className="text-xs uppercase mt-1 opacity-90">Classes</span>
+        </div>
+        <div className="bg-[#9b59b6] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("teachers")}>
+          <span className="text-4xl font-bold">{totalTeachers}</span>
+          <span className="text-xs uppercase mt-1 opacity-90">Teachers</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chart Section */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Class Distribution</h3>
-            <button onClick={() => onNavigate("classes")} className="text-xs text-[#2d6a4f] hover:underline font-semibold flex items-center gap-1">
-              View all <ArrowRight size={12} />
-            </button>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-8">
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold text-gray-800">School Class Distribution</h2>
+          <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">2026/2027 Session</p>
+        </div>
+        
+        {classDist.length === 0 ? (
+          <div className="h-80 flex flex-col items-center justify-center text-gray-400 bg-gray-50 border border-dashed rounded-lg">
+             <School size={48} className="mb-4 opacity-20" />
+             <p>No active students enrolled to display distribution.</p>
+             <button onClick={() => onNavigate("students")} className="mt-4 px-4 py-2 bg-[#3498db] text-white text-xs font-bold rounded">Add Student</button>
           </div>
-          
-          {classDist.length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-gray-400 text-sm bg-gray-50 rounded-lg border border-dashed">
-              No active students enrolled to display.
-            </div>
-          ) : (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={classDist} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <Tooltip 
-                    cursor={{ fill: '#f3f4f6' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                    {classDist.map((entry: any, index: number) => (
-                      <Cell key={index} fill={index % 2 === 0 ? "#1b4332" : "#40916c"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+        ) : (
+          <div className="h-80 mt-8">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={classDist} margin={{ top: 20, right: 30, left: 0, bottom: 25 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#7f8c8d', fontWeight: 'bold' }} dy={15} angle={-30} textAnchor="end" />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#7f8c8d' }} label={{ value: 'Number of Students', angle: -90, position: 'insideLeft', fill: '#95a5a6', fontSize: 11 }} />
+                <Tooltip 
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '4px', border: '1px solid #eee', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                />
+                <Bar dataKey="value" radius={[0, 0, 0, 0]} maxBarSize={30}>
+                  {classDist.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+          <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b pb-2">Quick Links</h3>
+          <div className="grid grid-cols-2 gap-3">
+             <button onClick={() => onNavigate("exams")} className="w-full bg-[#1abc9c] text-white font-bold text-xs py-3 px-4 rounded shadow-sm hover:opacity-90">My Schedules</button>
+             <button onClick={() => onNavigate("results")} className="w-full bg-[#1abc9c] text-white font-bold text-xs py-3 px-4 rounded shadow-sm hover:opacity-90">Make Report</button>
+             <button onClick={() => onNavigate("calendar")} className="w-full bg-[#34495e] text-white font-bold text-xs py-3 px-4 rounded shadow-sm hover:opacity-90">Event Calendar</button>
+             <button onClick={() => onNavigate("attendance")} className="w-full bg-[#34495e] text-white font-bold text-xs py-3 px-4 rounded shadow-sm hover:opacity-90">Attendance Register</button>
+          </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] p-6">
-            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-5">School Population</h3>
-            <div className="h-48">
-              {popData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-gray-400 text-xs bg-gray-50 rounded border border-dashed">No data</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={popData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5}>
-                      {popData.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={index === 0 ? "#1b4332" : "#52b788"} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-            <div className="flex justify-center gap-4 mt-2">
-              <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium"><span className="w-2.5 h-2.5 rounded-full bg-[#1b4332]"></span> Students</div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium"><span className="w-2.5 h-2.5 rounded-full bg-[#52b788]"></span> Teachers</div>
-            </div>
-          </div>
-          <div className="bg-[#1b4332] rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
-            <h3 className="text-sm font-bold text-emerald-200 uppercase tracking-wider mb-2">School Calendar</h3>
-            <p className="text-xl font-bold mb-4">First Term 2026</p>
-            <button onClick={() => onNavigate("settings")} className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded transition-colors flex items-center justify-center gap-2">
-              <Clock size={16} /> Update Calendar
-            </button>
+        <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+          <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-2"><CalendarDays size={16} className="text-[#2ecc71]"/> Upcoming Events</h3>
+          <div className="text-center py-8 text-gray-400 text-sm">
+             <p>No Recent Event</p>
           </div>
         </div>
       </div>

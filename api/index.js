@@ -340,11 +340,13 @@ async function getDashboard(platformUser) {
   if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   const start = todayStart();
-  const [totalStudents, activeStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
+  const [totalStudents, activeStudents, maleStudents, femaleStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
     Student.countDocuments({ isDeleted: false }),
     Student.countDocuments({ isDeleted: false, status: "active" }),
-    Teacher.countDocuments({ isDeleted: false }),
-    SchoolClass.countDocuments({ isDeleted: false }),
+    Student.countDocuments({ isDeleted: false, status: "active", gender: "Male" }),
+    Student.countDocuments({ isDeleted: false, status: "active", gender: "Female" }),
+    Teacher.countDocuments({ isDeleted: false, status: "active" }),
+    SchoolClass.countDocuments({ isDeleted: false, status: "active" }),
     Exam.find({ isDeleted: false, status: { $in: ["scheduled", "open"] }, startsAt: { $gte: start } }).sort({ startsAt: 1 }).limit(3).select("title examType startsAt").lean()
   ]);
   const classDistribution = await Student.aggregate([
@@ -354,7 +356,9 @@ async function getDashboard(platformUser) {
   const chartData = classDistribution.map((d) => ({ name: d._id || "Unassigned", value: d.count }));
   const populationData = [
     { name: "Students", value: activeStudents },
-    { name: "Teachers", value: totalTeachers }
+    { name: "Teachers", value: totalTeachers },
+    { name: "Male Students", value: maleStudents },
+    { name: "Female Students", value: femaleStudents }
   ];
   return {
     identity,
@@ -414,10 +418,11 @@ async function createRecord(platformUser, section, payload) {
       counter++;
     }
     const hashedPassword = await bcrypt.hash(payload.password || "Password123!", 10);
-    const recordPayload = { ...payload };
+    const recordPayload = { ...payload, status: payload.status || "active" };
     delete recordPayload.password;
     recordPayload.name = recordPayload.fullName;
     const doc2 = await model.create({
+      status: payload.status || (section === "classes" ? "active" : void 0),
       ...recordPayload,
       isDeleted: false,
       schoolId: identity.profileId || "default-school"
