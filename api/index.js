@@ -291,17 +291,6 @@ init_school();
 // server/services/schoolAccess.ts
 init_school();
 import { Types } from "mongoose";
-function canAccessSection(role, section) {
-  if (!role) return false;
-  if (role === "admin") return true;
-  if (role === "teacher" && section === "fees") return false;
-  if (section === "settings") return false;
-  if (role === "student" && (section === "results" || section === "students" || section === "attendance" || section === "exams")) return true;
-  if (role === "student") return false;
-  if (role === "parent" && (section === "attendance" || section === "results" || section === "students" || section === "fees" || section === "exams")) return true;
-  if (role === "parent") return false;
-  return true;
-}
 async function getScopedFilter(identity, section) {
   if (!identity || !identity.linked) return { _id: null };
   if (identity.role === "admin") return {};
@@ -346,36 +335,33 @@ var todayStart = () => {
   value.setHours(0, 0, 0, 0);
   return value;
 };
-var displayCurrency = (value) => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(value);
 async function getDashboard(platformUser) {
   const identity = await getSchoolIdentity(platformUser);
-  if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [] };
-  if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [] };
+  if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
+  if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   const start = todayStart();
-  const studentScope = canAccessSection(identity.role, "students") ? await getScopedFilter(identity, "students") : { _id: null };
-  const attendanceScope = canAccessSection(identity.role, "attendance") ? await getScopedFilter(identity, "attendance") : { _id: null };
-  const examScope = canAccessSection(identity.role, "exams") ? await getScopedFilter(identity, "exams") : { _id: null };
-  const feeScope = canAccessSection(identity.role, "fees") ? await getScopedFilter(identity, "fees") : { _id: null };
-  const attemptScope = identity.role === "teacher" || identity.role === "student" ? attendanceScope : identity.role === "admin" ? {} : { _id: null };
-  const [students, present, attempts, payments, absent, upcoming] = await Promise.all([
-    Student.countDocuments({ isDeleted: false, status: "active", ...studentScope }),
-    Attendance.countDocuments({ isDeleted: false, date: { $gte: start }, status: "present", ...attendanceScope }),
-    ExamAttempt.countDocuments({ isDeleted: false, isPractice: true, submittedAt: { $gte: start }, ...attemptScope }),
-    Payment.aggregate([{ $match: { isDeleted: false, status: "successful", ...feeScope } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
-    Attendance.countDocuments({ isDeleted: false, date: { $gte: start }, status: "absent", ...attendanceScope }),
-    Exam.find({ isDeleted: false, status: { $in: ["scheduled", "open"] }, startsAt: { $gte: start }, ...examScope }).sort({ startsAt: 1 }).limit(3).select("title examType startsAt").lean()
+  const [totalStudents, activeStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
+    Student.countDocuments({ isDeleted: false }),
+    Student.countDocuments({ isDeleted: false, status: "active" }),
+    Teacher.countDocuments({ isDeleted: false }),
+    SchoolClass.countDocuments({ isDeleted: false }),
+    Exam.find({ isDeleted: false, status: { $in: ["scheduled", "open"] }, startsAt: { $gte: start } }).sort({ startsAt: 1 }).limit(3).select("title examType startsAt").lean()
   ]);
-  const attendanceRate = students > 0 ? `${(present / students * 100).toFixed(1)}%` : "\u2014";
+  const classDistribution = await Student.aggregate([
+    { $match: { isDeleted: false, status: "active" } },
+    { $group: { _id: "$className", count: { $sum: 1 } } }
+  ]);
+  const chartData = classDistribution.map((d) => ({ name: d._id || "Unassigned", value: d.count }));
   return {
     identity,
     metrics: [
-      { key: "attendance", label: "Student attendance", value: attendanceRate, detail: `${present} present today` },
-      { key: "practice", label: "Practice completion", value: String(attempts), detail: "Submitted practice attempts today" },
-      { key: "fees", label: "Fees received", value: displayCurrency(Number(payments[0]?.total ?? 0)), detail: "Successful payments recorded" },
-      { key: "attention", label: "Needs attention", value: String(absent), detail: "Students absent today" }
+      { key: "students", label: "Active Students", value: String(activeStudents), detail: `Out of ${totalStudents} total enrolled` },
+      { key: "classes", label: "Total Classes", value: String(totalClasses), detail: "Active grade levels and streams" },
+      { key: "teachers", label: "Total Teachers", value: String(totalTeachers), detail: "Registered academic staff" }
     ],
     upcoming: upcoming.map((exam) => ({ id: exam._id.toString(), title: exam.title, type: exam.examType, startsAt: exam.startsAt ?? null })),
-    followUps: absent > 0 ? [{ label: "Attendance review", detail: `${absent} student${absent === 1 ? "" : "s"} marked absent today` }] : []
+    followUps: [],
+    charts: { classDistribution: chartData }
   };
 }
 var recordDefinitions = {

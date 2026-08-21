@@ -154,87 +154,17 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
   );
 }
 
+
+import AdminDashboard from "./AdminDashboard";
+
 function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
   if (role === "Student") return <StudentDashboard />;
-
-  const copy = roleCopy[role];
-
-  if (summary?.isAdminView) {
-    const adminMetrics = summary.metrics || {};
-    const chartData = summary.classDistribution || [];
-    return (
-      <>
-        <section className="welcome-band">
-          <div className="welcome-copy">
-            <p className="eyebrow"><span /> Administrator Desk</p>
-            <h1>School Operations Overview</h1>
-            <p className="intro">Live statistics from your active, protected database.</p>
-            <div className="welcome-actions">
-              <Button onClick={onCreate}><Plus size={17} /> New Record</Button>
-            </div>
-          </div>
-        </section>
-        <ConnectionNotice summary={summary} />
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          {[
-            { label: "Active Students", value: adminMetrics.activeStudents || 0, bg: "bg-blue-500" },
-            { label: "Male Students", value: adminMetrics.maleStudents || 0, bg: "bg-emerald-400" },
-            { label: "Female Students", value: adminMetrics.femaleStudents || 0, bg: "bg-amber-400" },
-            { label: "Classes", value: adminMetrics.totalClasses || 0, bg: "bg-cyan-500" },
-            { label: "Teachers", value: adminMetrics.totalTeachers || 0, bg: "bg-purple-600" },
-            { label: "Total Attendance", value: (adminMetrics.totalAttendance || 0) + "%", bg: "bg-teal-400" }
-          ].map(m => (
-            <div key={m.label} className={`${m.bg} text-white p-4 rounded-xl shadow-sm flex flex-col justify-between`}>
-              <div className="text-3xl font-bold font-serif mb-2">{m.value}</div>
-              <div className="text-xs uppercase tracking-wider font-semibold opacity-90">{m.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <section className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-serif font-bold text-gray-900">School Class Distribution</h2>
-            <p className="text-sm text-gray-500">Number of Active Students per Class</p>
-          </div>
-          <div className="h-[300px] w-full">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#f5f5f5' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                  <Bar dataKey="count" fill="#2d6a4f" radius={[4, 4, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                <AlertCircle size={24} className="mb-2" />
-                <p>No class distribution data available.</p>
-              </div>
-            )}
-          </div>
-        </section>
-      </>
-    );
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-[#1b4332]" size={32} /></div>;
   }
-
-  const metrics = summary?.metrics ?? [];
-  const attendance = metrics.find((metric: any) => metric.key === "attendance");
-  const attendanceValue = Number.parseFloat(attendance?.value ?? "0") || 0;
-  const upcoming = summary?.upcoming ?? [];
-  const followUps = summary?.followUps ?? [];
-  return <>
-    <section className="welcome-band"><div className="welcome-copy"><p className="eyebrow"><span /> {copy.eyebrow}</p><h1>{copy.greeting}</h1><p className="intro">{copy.description}</p><div className="welcome-actions"><Button onClick={onCreate}><Plus size={17} /> {copy.action}</Button><button className="text-action" onClick={() => onNavigate("calendar")}>View school rhythm <ArrowRight size={16} /></button></div></div><div className="welcome-image" style={{ backgroundImage: "url('/manus-storage/green-ledger-learning-hero_14e29074.jpg')" }}><span className="image-caption">Learning works better in company.</span></div></section>
-    <ConnectionNotice summary={summary} />
-    <section className="metric-strip" aria-label="Live school overview metrics">{isLoading ? <article><span>Loading secure records</span><strong>…</strong><p><Loader2 size={14} className="animate-spin" /> Connecting to school data</p></article> : metrics.length ? metrics.map((metric: any) => <article key={metric.key} className={metric.key === "attention" ? "metric-callout" : ""}><span>{metric.label}</span><strong>{metric.value}</strong><p>{metric.key === "attention" ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />} {metric.detail}</p></article>) : <article><span>Live metrics</span><strong>—</strong><p><AlertCircle size={14} /> No authorised records are available yet</p></article>}</section>
-    <section className="dashboard-grid"><article className="ledger-card activity-card"><div className="section-heading"><div><p className="eyebrow"><span /> Activity pulse</p><h2>Records will tell the learning story.</h2></div><button className="icon-button" onClick={() => toast.info("Attendance and assessment entries will populate this view as staff submit them.")}><SlidersHorizontal size={17} /></button></div><div className="pulse-chart"><div className="chart-key"><span><i className="line-key attendance" /> Attendance</span><span><i className="line-key practice" /> Practice</span></div><div className="chart-lines chart-empty"><p>{summary?.identity?.connection === "connected" ? "No dated activity is available for this week yet." : "Live trends appear after Atlas is connected."}</p></div></div><div className="activity-note"><span className="note-icon"><Sparkles size={16} /></span><p><b>Live source:</b> daily attendance and submitted practice attempts are the only inputs used for this view.</p><button onClick={() => onNavigate("exams")}>Review practice <ArrowUpRight size={15} /></button></div></article>
-      <article className="ledger-card insight-card"><div className="section-heading"><div><p className="eyebrow"><span /> Today’s register</p><h2>Attendance, at a glance.</h2></div><button className="text-action compact" onClick={() => onNavigate("attendance")}>Open register <ArrowRight size={14} /></button></div><div className="register-content"><ProgressRing value={attendanceValue} label="Present" /><div className="register-stats"><p><b>{attendance?.detail ?? "No register submitted"}</b></p><span><i className="dot green" /> Live result from today’s records</span><span><i className="dot gold" /> Absent students appear in follow-up</span></div></div><div className="mini-list"><span><b>Source</b><em>{summary?.identity?.connection === "connected" ? "MongoDB Atlas" : "Awaiting Atlas"}</em></span><span><b>Profile link</b><em>{summary?.identity?.linked ? "Ready" : "Required"}</em></span></div></article>
-      <article className="ledger-card upcoming-card"><div className="section-heading"><div><p className="eyebrow"><span /> On the horizon</p><h2>Keep the next few days clear.</h2></div><button className="icon-button" onClick={() => onNavigate("calendar")}><CalendarDays size={17} /></button></div><div className="event-list">{upcoming.length ? upcoming.map((event: any) => { const date = event.startsAt ? new Date(event.startsAt) : null; return <div key={event.id}><time><b>{date ? date.getDate() : "—"}</b><span>{date ? date.toLocaleDateString(undefined, { month: "short" }).toUpperCase() : "DATE"}</span></time><p><b>{event.title}</b><span>{date ? date.toLocaleString() : "Schedule pending"}</span></p><em className="event-tag assess">{event.type}</em></div>; }) : <div className="data-empty">No scheduled assessments are available for your role.</div>}</div></article>
-      <article className="ledger-card teacher-card"><div className="teacher-image" style={{ backgroundImage: "url('/manus-storage/green-ledger-teacher-portrait_83aca894.jpg')" }}><span>Teaching desk</span></div><div className="teacher-copy"><p className="eyebrow"><span /> Learning insight</p><h2>Every submitted record makes the next conversation clearer.</h2><p>Teachers can use attendance, practice, and result records to decide what support is useful next.</p><button className="text-action" onClick={() => onNavigate("students")}>See student records <ArrowRight size={15} /></button></div></article></section>
-    <section className="lower-grid"><article className="ledger-card action-card"><div className="section-heading"><div><p className="eyebrow"><span /> Follow-up</p><h2>Attention items from today’s live records.</h2></div><button className="text-action compact" onClick={() => onNavigate("announcements")}>View notices <ArrowRight size={14} /></button></div><div className="follow-list">{followUps.length ? followUps.map((item: any, index: number) => <div key={`${item.label}-${index}`}><span className="avatar mint">{String(index + 1).padStart(2, "0")}</span><p><b>{item.label}</b><span>{item.detail}</span></p><button onClick={() => toast.info("Messaging will use protected recipient records after staff accounts are linked.")}>Review <MessageCircle size={14} /></button></div>) : <div className="data-empty">No follow-up records are available today.</div>}</div></article><article className="ledger-card weekly-card" style={{ backgroundImage: "linear-gradient(90deg, rgba(255,255,255,.88), rgba(255,255,255,.94)), url('/manus-storage/green-ledger-study-texture_fef1cfb2.jpg')" }}><p className="eyebrow"><span /> Secure data plan</p><h2>Link your school user, then let the records lead.</h2><p>When MongoDB Atlas is available, the dashboard refreshes from protected procedures instead of display-only values.</p><div className="weekly-meta"><span><CheckCircle2 size={16} /> Session-aware data contract installed</span><button onClick={() => onNavigate("settings")}>Review setup <ArrowUpRight size={16} /></button></div></article></section>
-  </>;
+  
+  return <AdminDashboard summary={summary} onNavigate={onNavigate} />;
 }
 
 function Workspace({ section, onCreate }: { section: ProtectedSection; onCreate: () => void }) {
