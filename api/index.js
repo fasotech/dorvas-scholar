@@ -26,58 +26,31 @@ var protectedProcedure = t.procedure.use(({ ctx, next }) => {
 // server/_core/systemRouter.ts
 var systemRouter = router({});
 
-// server/routers/school.ts
-import { z } from "zod";
-
-// server/mongo.ts
-import mongoose from "mongoose";
-var nextRetryAt = 0;
-var lastConnectionError = null;
-async function getMongoConnection() {
-  if (mongoose.connection.readyState === 1) return mongoose.connection;
-  if (Date.now() < nextRetryAt) return null;
-  const uri = process.env.MONGODB_URI;
-  if (!uri || !/^mongodb(\+srv)?:\/\//.test(uri)) {
-    lastConnectionError = "MONGODB_URI is missing or is not a MongoDB connection URI.";
-    return null;
-  }
-  try {
-    await mongoose.connect(uri, {
-      connectTimeoutMS: 8e3,
-      serverSelectionTimeoutMS: 8e3,
-      maxPoolSize: 10
-    });
-    lastConnectionError = null;
-    return mongoose.connection;
-  } catch (error) {
-    lastConnectionError = error instanceof Error ? error.message : "MongoDB connection failed.";
-    nextRetryAt = Date.now() + 3e4;
-    await mongoose.disconnect().catch(() => void 0);
-    return null;
-  }
-}
-function getMongoConnectionIssue() {
-  return lastConnectionError;
-}
-
 // server/models/school.ts
-import mongoose2 from "mongoose";
+import mongoose from "mongoose";
 var baseOptions = { timestamps: true };
-var roleSchema = new mongoose2.Schema({ name: String }, baseOptions);
-var Role = mongoose2.models.Role || mongoose2.model("Role", roleSchema);
-var schoolUserSchema = new mongoose2.Schema({
+var roleSchema = new mongoose.Schema({ name: String }, baseOptions);
+var Role = mongoose.models.Role || mongoose.model("Role", roleSchema);
+var schoolUserSchema = new mongoose.Schema({
   email: String,
   oauthOpenId: String,
   password: { type: String },
   displayName: String,
   role: String,
   profileType: String,
-  profileId: mongoose2.Schema.Types.ObjectId,
+  profileId: mongoose.Schema.Types.ObjectId,
   isActive: { type: Boolean, default: true },
-  isDeleted: { type: Boolean, default: false }
+  isDeleted: { type: Boolean, default: false },
+  photograph: String,
+  telephone: String,
+  gender: String,
+  parentContact: String,
+  academicSession: String,
+  feeBalance: { type: Number, default: 0 },
+  enrollmentStatus: { type: String, default: "Active" }
 }, baseOptions);
-var SchoolUser = mongoose2.models.SchoolUser || mongoose2.model("SchoolUser", schoolUserSchema);
-var studentSchema = new mongoose2.Schema({
+var SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
+var studentSchema = new mongoose.Schema({
   name: String,
   fullName: String,
   admissionNumber: String,
@@ -85,13 +58,13 @@ var studentSchema = new mongoose2.Schema({
   state: String,
   address: String,
   dob: Date,
-  classId: mongoose2.Schema.Types.ObjectId,
+  classId: mongoose.Schema.Types.ObjectId,
   className: String,
   email: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
-var Student = mongoose2.models.Student || mongoose2.model("Student", studentSchema);
-var teacherSchema = new mongoose2.Schema({
+var Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
+var teacherSchema = new mongoose.Schema({
   name: String,
   fullName: String,
   status: String,
@@ -99,77 +72,108 @@ var teacherSchema = new mongoose2.Schema({
   email: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
-var Teacher = mongoose2.models.Teacher || mongoose2.model("Teacher", teacherSchema);
-var parentSchema = new mongoose2.Schema({ name: String, children: [{ type: mongoose2.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
-var Parent = mongoose2.models.Parent || mongoose2.model("Parent", parentSchema);
-var schoolClassSchema = new mongoose2.Schema({ name: String }, baseOptions);
-var SchoolClass = mongoose2.models.SchoolClass || mongoose2.model("SchoolClass", schoolClassSchema);
-var subjectSchema = new mongoose2.Schema({ name: String }, baseOptions);
-var Subject = mongoose2.models.Subject || mongoose2.model("Subject", subjectSchema);
-var classSubjectSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, subjectId: mongoose2.Schema.Types.ObjectId, teacherId: mongoose2.Schema.Types.ObjectId }, baseOptions);
-var ClassSubject = mongoose2.models.ClassSubject || mongoose2.model("ClassSubject", classSubjectSchema);
-var academicSessionSchema = new mongoose2.Schema({ name: String }, baseOptions);
-var AcademicSession = mongoose2.models.AcademicSession || mongoose2.model("AcademicSession", academicSessionSchema);
-var termSchema = new mongoose2.Schema({ name: String }, baseOptions);
-var Term = mongoose2.models.Term || mongoose2.model("Term", termSchema);
-var attendanceSchema = new mongoose2.Schema({
-  studentId: mongoose2.Schema.Types.ObjectId,
+var Teacher = mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
+var parentSchema = new mongoose.Schema({ name: String, children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
+var Parent = mongoose.models.Parent || mongoose.model("Parent", parentSchema);
+var schoolClassSchema = new mongoose.Schema({ name: String }, baseOptions);
+var SchoolClass = mongoose.models.SchoolClass || mongoose.model("SchoolClass", schoolClassSchema);
+var subjectSchema = new mongoose.Schema({ name: String }, baseOptions);
+var Subject = mongoose.models.Subject || mongoose.model("Subject", subjectSchema);
+var classSubjectSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, teacherId: mongoose.Schema.Types.ObjectId }, baseOptions);
+var ClassSubject = mongoose.models.ClassSubject || mongoose.model("ClassSubject", classSubjectSchema);
+var academicSessionSchema = new mongoose.Schema({ name: String }, baseOptions);
+var AcademicSession = mongoose.models.AcademicSession || mongoose.model("AcademicSession", academicSessionSchema);
+var termSchema = new mongoose.Schema({ name: String }, baseOptions);
+var Term = mongoose.models.Term || mongoose.model("Term", termSchema);
+var attendanceSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
   date: Date,
   periodKey: String,
   status: String,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 attendanceSchema.index({ studentId: 1, date: 1, periodKey: 1 }, { unique: true });
-var Attendance = mongoose2.models.Attendance || mongoose2.model("Attendance", attendanceSchema);
-var examSchema = new mongoose2.Schema({ name: String, classId: mongoose2.Schema.Types.ObjectId, subjectId: mongoose2.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Exam = mongoose2.models.Exam || mongoose2.model("Exam", examSchema);
-var questionSchema = new mongoose2.Schema({ examId: mongoose2.Schema.Types.ObjectId, text: String }, baseOptions);
-var Question = mongoose2.models.Question || mongoose2.model("Question", questionSchema);
-var examAttemptSchema = new mongoose2.Schema({
-  examId: mongoose2.Schema.Types.ObjectId,
-  studentId: mongoose2.Schema.Types.ObjectId,
+var Attendance = mongoose.models.Attendance || mongoose.model("Attendance", attendanceSchema);
+var examSchema = new mongoose.Schema({ name: String, classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
+var Exam = mongoose.models.Exam || mongoose.model("Exam", examSchema);
+var questionSchema = new mongoose.Schema({ examId: mongoose.Schema.Types.ObjectId, text: String }, baseOptions);
+var Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
+var examAttemptSchema = new mongoose.Schema({
+  examId: mongoose.Schema.Types.ObjectId,
+  studentId: mongoose.Schema.Types.ObjectId,
   attemptNumber: Number
 }, baseOptions);
 examAttemptSchema.index({ examId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
-var ExamAttempt = mongoose2.models.ExamAttempt || mongoose2.model("ExamAttempt", examAttemptSchema);
-var examAnswerSchema = new mongoose2.Schema({ attemptId: mongoose2.Schema.Types.ObjectId }, baseOptions);
-var ExamAnswer = mongoose2.models.ExamAnswer || mongoose2.model("ExamAnswer", examAnswerSchema);
-var resultSchema = new mongoose2.Schema({
-  studentId: mongoose2.Schema.Types.ObjectId,
-  examId: mongoose2.Schema.Types.ObjectId,
+var ExamAttempt = mongoose.models.ExamAttempt || mongoose.model("ExamAttempt", examAttemptSchema);
+var examAnswerSchema = new mongoose.Schema({ attemptId: mongoose.Schema.Types.ObjectId }, baseOptions);
+var ExamAnswer = mongoose.models.ExamAnswer || mongoose.model("ExamAnswer", examAnswerSchema);
+var resultSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
+  examId: mongoose.Schema.Types.ObjectId,
   score: Number,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
 resultSchema.index({ studentId: 1, examId: 1 }, { unique: true });
-var Result = mongoose2.models.Result || mongoose2.model("Result", resultSchema);
-var reportCardSchema = new mongoose2.Schema({ studentId: mongoose2.Schema.Types.ObjectId }, baseOptions);
-var ReportCard = mongoose2.models.ReportCard || mongoose2.model("ReportCard", reportCardSchema);
-var feeSchema = new mongoose2.Schema({ studentId: mongoose2.Schema.Types.ObjectId, amount: Number }, baseOptions);
-var Fee = mongoose2.models.Fee || mongoose2.model("Fee", feeSchema);
-var paymentSchema = new mongoose2.Schema({
-  studentId: mongoose2.Schema.Types.ObjectId,
+var Result = mongoose.models.Result || mongoose.model("Result", resultSchema);
+var reportCardSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId }, baseOptions);
+var ReportCard = mongoose.models.ReportCard || mongoose.model("ReportCard", reportCardSchema);
+var feeSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId, amount: Number }, baseOptions);
+var Fee = mongoose.models.Fee || mongoose.model("Fee", feeSchema);
+var paymentSchema = new mongoose.Schema({
+  studentId: mongoose.Schema.Types.ObjectId,
   amount: Number,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
-var Payment = mongoose2.models.Payment || mongoose2.model("Payment", paymentSchema);
-var announcementSchema = new mongoose2.Schema({ title: String, content: String }, baseOptions);
-var Announcement = mongoose2.models.Announcement || mongoose2.model("Announcement", announcementSchema);
-var messageSchema = new mongoose2.Schema({ fromId: mongoose2.Schema.Types.ObjectId, toId: mongoose2.Schema.Types.ObjectId, body: String }, baseOptions);
-var Message = mongoose2.models.Message || mongoose2.model("Message", messageSchema);
-var notificationSchema = new mongoose2.Schema({ userId: mongoose2.Schema.Types.ObjectId, message: String }, baseOptions);
-var Notification = mongoose2.models.Notification || mongoose2.model("Notification", notificationSchema);
-var documentSchema = new mongoose2.Schema({ url: String }, baseOptions);
-var Document = mongoose2.models.Document || mongoose2.model("Document", documentSchema);
-var auditLogSchema = new mongoose2.Schema({ action: String }, baseOptions);
-var AuditLog = mongoose2.models.AuditLog || mongoose2.model("AuditLog", auditLogSchema);
-var homeworkSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, title: String }, baseOptions);
-var Homework = mongoose2.models.Homework || mongoose2.model("Homework", homeworkSchema);
-var assignmentSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId, title: String }, baseOptions);
-var Assignment = mongoose2.models.Assignment || mongoose2.model("Assignment", assignmentSchema);
-var timetableSchema = new mongoose2.Schema({ classId: mongoose2.Schema.Types.ObjectId }, baseOptions);
-var Timetable = mongoose2.models.Timetable || mongoose2.model("Timetable", timetableSchema);
-var admissionSchema = new mongoose2.Schema({ studentName: String }, baseOptions);
-var Admission = mongoose2.models.Admission || mongoose2.model("Admission", admissionSchema);
+var Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
+var announcementSchema = new mongoose.Schema({ title: String, content: String }, baseOptions);
+var Announcement = mongoose.models.Announcement || mongoose.model("Announcement", announcementSchema);
+var messageSchema = new mongoose.Schema({ fromId: mongoose.Schema.Types.ObjectId, toId: mongoose.Schema.Types.ObjectId, body: String }, baseOptions);
+var Message = mongoose.models.Message || mongoose.model("Message", messageSchema);
+var notificationSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, message: String }, baseOptions);
+var Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
+var documentSchema = new mongoose.Schema({ url: String }, baseOptions);
+var Document = mongoose.models.Document || mongoose.model("Document", documentSchema);
+var auditLogSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, targetId: mongoose.Schema.Types.ObjectId, action: String, details: String }, baseOptions);
+var AuditLog = mongoose.models.AuditLog || mongoose.model("AuditLog", auditLogSchema);
+var homeworkSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
+var Homework = mongoose.models.Homework || mongoose.model("Homework", homeworkSchema);
+var assignmentSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
+var Assignment = mongoose.models.Assignment || mongoose.model("Assignment", assignmentSchema);
+var timetableSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId }, baseOptions);
+var Timetable = mongoose.models.Timetable || mongoose.model("Timetable", timetableSchema);
+var admissionSchema = new mongoose.Schema({ studentName: String }, baseOptions);
+var Admission = mongoose.models.Admission || mongoose.model("Admission", admissionSchema);
+
+// server/mongo.ts
+import mongoose2 from "mongoose";
+var nextRetryAt = 0;
+var lastConnectionError = null;
+async function getMongoConnection() {
+  if (mongoose2.connection.readyState === 1) return mongoose2.connection;
+  if (Date.now() < nextRetryAt) return null;
+  const uri = process.env.MONGODB_URI;
+  if (!uri || !/^mongodb(\+srv)?:\/\//.test(uri)) {
+    lastConnectionError = "MONGODB_URI is missing or is not a MongoDB connection URI.";
+    return null;
+  }
+  try {
+    await mongoose2.connect(uri, {
+      connectTimeoutMS: 8e3,
+      serverSelectionTimeoutMS: 8e3,
+      maxPoolSize: 10
+    });
+    lastConnectionError = null;
+    return mongoose2.connection;
+  } catch (error) {
+    lastConnectionError = error instanceof Error ? error.message : "MongoDB connection failed.";
+    nextRetryAt = Date.now() + 3e4;
+    await mongoose2.disconnect().catch(() => void 0);
+    return null;
+  }
+}
+function getMongoConnectionIssue() {
+  return lastConnectionError;
+}
 
 // server/services/schoolAccess.ts
 import { Types } from "mongoose";
@@ -287,7 +291,7 @@ async function getRecords(platformUser, section, query) {
   const textFilter = query ? { $or: [{ name: { $regex: query, $options: "i" } }, { title: { $regex: query, $options: "i" } }, { fullName: { $regex: query, $options: "i" } }, { admissionNumber: { $regex: query, $options: "i" } }, { code: { $regex: query, $options: "i" } }] } : {};
   const filter = { $and: [{ isDeleted: false }, scope, textFilter] };
   const [records, total] = await Promise.all([definition.model.find(filter).sort({ createdAt: -1 }).limit(50).lean(), definition.model.countDocuments(filter)]);
-  return { identity, columns: definition.columns, records: records.map((record) => definition.fields.map((field) => cell(record[field]))), total };
+  return { identity, columns: definition.columns, records: records.map((record) => ({ id: record._id, cells: definition.fields.map((field) => cell(record[field])) })), total };
 }
 async function createRecord(platformUser, section, payload) {
   const identity = await getSchoolIdentity(platformUser);
@@ -334,7 +338,89 @@ async function createRecord(platformUser, section, payload) {
   return { success: true, id: doc._id };
 }
 
+// server/services/studentProfile.ts
+async function getStudentProfile(platformUser, studentId) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.connection !== "connected") throw new Error("Database not connected");
+  const role = identity.role?.toLowerCase() || "";
+  if (!["admin", "administrator", "teacher", "parent", "student"].includes(role)) {
+    throw new Error("Unauthorized");
+  }
+  const student = await Student.findOne({ _id: studentId, isDeleted: { $ne: true } }).lean();
+  if (!student) throw new Error("Student not found");
+  if (role === "student") {
+    if (identity.profileId !== studentId) throw new Error("Forbidden: You can only view your own profile");
+  } else if (role === "parent") {
+  } else if (role === "teacher") {
+  }
+  const attendances = await Attendance.find({ studentId, isDeleted: { $ne: true } }).lean();
+  const attendanceStats = {
+    present: 0,
+    late: 0,
+    authorizedAbsent: 0,
+    unauthorizedAbsent: 0,
+    totalPercentage: 0
+  };
+  attendances.forEach((a) => {
+    const s = a.status?.toLowerCase();
+    if (s === "present") attendanceStats.present++;
+    else if (s === "late") attendanceStats.late++;
+    else if (s === "excused" || s === "authorized") attendanceStats.authorizedAbsent++;
+    else if (s === "absent" || s === "unauthorized") attendanceStats.unauthorizedAbsent++;
+  });
+  const total = attendances.length;
+  if (total > 0) {
+    attendanceStats.totalPercentage = Math.round((attendanceStats.present + attendanceStats.late) / total * 100);
+  }
+  const auditLogs = await AuditLog.find({ targetId: studentId }).sort({ createdAt: -1 }).limit(20).lean();
+  return {
+    student,
+    attendanceStats,
+    auditLogs,
+    identityRole: role
+  };
+}
+async function logAdminAction(userId, targetId, action, details = "") {
+  await AuditLog.create({
+    userId,
+    targetId,
+    action,
+    details
+  });
+}
+async function updateStudentProfile(platformUser, studentId, updates) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.connection !== "connected") throw new Error("Database not connected");
+  const role = identity.role?.toLowerCase() || "";
+  if (role !== "admin" && role !== "administrator") throw new Error("Unauthorized: Only admins can edit profiles");
+  const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
+  if (identity.schoolUserId) {
+    await logAdminAction(identity.schoolUserId, studentId, "Updated Profile", JSON.stringify(updates));
+  }
+  return student;
+}
+async function toggleStudentStatus(platformUser, studentId, newStatus) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.role?.toLowerCase() !== "admin" && identity.role?.toLowerCase() !== "administrator") throw new Error("Unauthorized");
+  const student = await Student.findByIdAndUpdate(studentId, { enrollmentStatus: newStatus }, { new: true });
+  if (identity.schoolUserId) {
+    await logAdminAction(identity.schoolUserId, studentId, "Changed Status", `Status changed to ${newStatus}`);
+  }
+  return student;
+}
+async function deleteStudent(platformUser, studentId) {
+  const identity = await getSchoolIdentity(platformUser);
+  if (identity.role?.toLowerCase() !== "admin" && identity.role?.toLowerCase() !== "administrator") throw new Error("Unauthorized");
+  await Student.findByIdAndUpdate(studentId, { isDeleted: true });
+  await SchoolUser.updateMany({ profileId: studentId }, { isDeleted: true, isActive: false });
+  if (identity.schoolUserId) {
+    await logAdminAction(identity.schoolUserId, studentId, "Deleted Student", "Soft deleted student record");
+  }
+  return { success: true };
+}
+
 // server/routers/school.ts
+import { z } from "zod";
 var schoolRouter = router({
   dashboard: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
@@ -345,6 +431,22 @@ var schoolRouter = router({
     if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
     const user = ctx.user;
     return await getRecords({ openId: user.id || user.openId || user.email, email: user.email, name: user.name }, input.section, input.query);
+  }),
+  getStudentProfile: publicProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    return await getStudentProfile(ctx.user, input.id);
+  }),
+  updateStudentProfile: publicProcedure.input(z.object({ id: z.string(), updates: z.any() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    return await updateStudentProfile(ctx.user, input.id, input.updates);
+  }),
+  toggleStudentStatus: publicProcedure.input(z.object({ id: z.string(), status: z.string() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    return await toggleStudentStatus(ctx.user, input.id, input.status);
+  }),
+  deleteStudent: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    return await deleteStudent(ctx.user, input.id);
   }),
   createRecord: publicProcedure.input(z.object({ section: z.enum(dashboardSections), payload: z.any() })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);

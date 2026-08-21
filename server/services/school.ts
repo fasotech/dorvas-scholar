@@ -81,7 +81,7 @@ export async function getRecords(platformUser: PlatformUser, section: DashboardS
   const textFilter = query ? { $or: [{ name: { $regex: query, $options: "i" } }, { title: { $regex: query, $options: "i" } }, { fullName: { $regex: query, $options: "i" } }, { admissionNumber: { $regex: query, $options: "i" } }, { code: { $regex: query, $options: "i" } }] } : {};
   const filter = { $and: [{ isDeleted: false }, scope, textFilter] };
   const [records, total] = await Promise.all([definition.model.find(filter).sort({ createdAt: -1 }).limit(50).lean(), definition.model.countDocuments(filter)]);
-  return { identity, columns: definition.columns, records: records.map((record: Record<string, unknown>) => definition.fields.map((field) => cell(record[field]))), total };
+  return { identity, columns: definition.columns, records: records.map((record: Record<string, unknown>) => ({ id: record._id, cells: definition.fields.map((field) => cell(record[field])) })), total };
 }
 
 export async function getSchoolHealth(platformUser: PlatformUser) {

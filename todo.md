@@ -14,3 +14,4 @@
 - [x] Verify a real linked SchoolUser resolves the correct role after sign-in.
 - [x] Browser-test permitted overview and section data for each configured school role after Atlas access is enabled.
 
+\n- [x] Implement comprehensive Student Profile page with RBAC, attendance summary, and admin actions\n

@@ -16,7 +16,14 @@ const schoolUserSchema = new mongoose.Schema({
   profileType: String,
   profileId: mongoose.Schema.Types.ObjectId,
   isActive: { type: Boolean, default: true },
-  isDeleted: { type: Boolean, default: false }
+  isDeleted: { type: Boolean, default: false },
+  photograph: String,
+  telephone: String,
+  gender: String,
+  parentContact: String,
+  academicSession: String,
+  feeBalance: { type: Number, default: 0 },
+  enrollmentStatus: { type: String, default: "Active" }
 }, baseOptions);
 export const SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
 
@@ -124,7 +131,7 @@ export const Notification = mongoose.models.Notification || mongoose.model("Noti
 const documentSchema = new mongoose.Schema({ url: String }, baseOptions);
 export const Document = mongoose.models.Document || mongoose.model("Document", documentSchema);
 
-const auditLogSchema = new mongoose.Schema({ action: String }, baseOptions);
+const auditLogSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, targetId: mongoose.Schema.Types.ObjectId, action: String, details: String }, baseOptions);
 export const AuditLog = mongoose.models.AuditLog || mongoose.model("AuditLog", auditLogSchema);
 
 const homeworkSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);

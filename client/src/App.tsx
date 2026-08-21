@@ -7,6 +7,7 @@ import { Route, Switch } from "wouter";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
+import StudentProfile from "./pages/StudentProfile";
 
 function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ function AppRoutes() {
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Home} />
+      <Route path="/students/:studentId" component={StudentProfile} />
       {/* Catch-all */}
       <Route component={Landing} />
     </Switch>
