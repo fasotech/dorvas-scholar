@@ -5,6 +5,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Route, Switch } from "wouter";
 import Home from "./pages/Home";
+import CBTPlatform from "./pages/CBTPlatform";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
 import StudentProfile from "./pages/StudentProfile";
@@ -16,6 +17,7 @@ function AppRoutes() {
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Home} />
       <Route path="/students/:studentId" component={StudentProfile} />
+      <Route path="/cbt/:examId" component={CBTPlatform} />
       {/* Catch-all */}
       <Route component={Landing} />
     </Switch>

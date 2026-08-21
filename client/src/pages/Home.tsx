@@ -3,6 +3,7 @@
  * School records are always loaded from protected tRPC procedures; no sample learners or financial data is displayed.
  */
 import { useAuth } from "@/_core/hooks/useAuth";
+import StudentDashboard from "./StudentDashboard";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
@@ -154,6 +155,8 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
 }
 
 function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
+  if (role === "Student") return <StudentDashboard />;
+
   const copy = roleCopy[role];
 
   if (summary?.isAdminView) {

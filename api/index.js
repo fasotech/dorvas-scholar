@@ -143,6 +143,51 @@ var timetableSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.Objec
 var Timetable = mongoose.models.Timetable || mongoose.model("Timetable", timetableSchema);
 var admissionSchema = new mongoose.Schema({ studentName: String }, baseOptions);
 var Admission = mongoose.models.Admission || mongoose.model("Admission", admissionSchema);
+var cbtExamSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  examType: { type: String, enum: ["Teacher Assessment", "JAMB Practice", "Mock"], default: "Teacher Assessment" },
+  subject: String,
+  targetClass: String,
+  durationMinutes: { type: Number, default: 30 },
+  isPublished: { type: Boolean, default: false },
+  createdBy: mongoose.Schema.Types.ObjectId,
+  isDeleted: { type: Boolean, default: false }
+}, baseOptions);
+var CBTExam = mongoose.models.CBTExam || mongoose.model("CBTExam", cbtExamSchema);
+var cbtQuestionSchema = new mongoose.Schema({
+  examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
+  questionText: { type: String, required: true },
+  options: [{ type: String, required: true }],
+  correctOptionIndex: { type: Number, required: true },
+  marks: { type: Number, default: 1 },
+  isDeleted: { type: Boolean, default: false }
+}, baseOptions);
+var CBTQuestion = mongoose.models.CBTQuestion || mongoose.model("CBTQuestion", cbtQuestionSchema);
+var cbtAttemptSchema = new mongoose.Schema({
+  examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
+  startedAt: { type: Date, default: Date.now },
+  completedAt: Date,
+  score: Number,
+  totalMarks: Number,
+  answers: [{
+    questionId: mongoose.Schema.Types.ObjectId,
+    selectedOptionIndex: Number
+  }],
+  status: { type: String, enum: ["in-progress", "completed"], default: "in-progress" }
+}, baseOptions);
+var CBTAttempt = mongoose.models.CBTAttempt || mongoose.model("CBTAttempt", cbtAttemptSchema);
+var classNoteSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  subject: String,
+  targetClass: String,
+  teacherId: mongoose.Schema.Types.ObjectId,
+  teacherName: String,
+  isDeleted: { type: Boolean, default: false }
+}, baseOptions);
+var ClassNote = mongoose.models.ClassNote || mongoose.model("ClassNote", classNoteSchema);
 
 // server/mongo.ts
 import mongoose2 from "mongoose";
@@ -616,12 +661,113 @@ var usersRouter = router({
   })
 });
 
+// server/routers/studentPortal.ts
+import { z as z4 } from "zod";
+var studentPortalRouter = router({
+  getDashboardData: protectedProcedure.query(async ({ ctx }) => {
+    const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+    if (!student) throw new Error("Student profile not found");
+    const activeExams = await CBTExam.find({
+      isPublished: true,
+      isDeleted: { $ne: true },
+      $or: [
+        { targetClass: student.className },
+        { targetClass: "All" }
+      ]
+    }).lean();
+    const recentNotes = await ClassNote.find({
+      isDeleted: { $ne: true },
+      $or: [
+        { targetClass: student.className },
+        { targetClass: "All" }
+      ]
+    }).sort({ _id: -1 }).limit(5).lean();
+    const attempts = await CBTAttempt.find({ studentId: student._id }).lean();
+    const exams = activeExams.map((exam) => {
+      const attempt = attempts.find((a) => a.examId.toString() === exam._id.toString());
+      return {
+        ...exam,
+        hasAttempted: !!attempt,
+        score: attempt ? attempt.score : null,
+        totalMarks: attempt ? attempt.totalMarks : null
+      };
+    });
+    return {
+      student,
+      exams,
+      recentNotes
+    };
+  }),
+  startExam: protectedProcedure.input(z4.object({ examId: z4.string() })).mutation(async ({ ctx, input }) => {
+    const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+    if (!student) throw new Error("Student profile not found");
+    const exam = await CBTExam.findOne({ _id: input.examId, isDeleted: { $ne: true } });
+    if (!exam) throw new Error("Exam not found");
+    let attempt = await CBTAttempt.findOne({ examId: exam._id, studentId: student._id });
+    if (attempt && attempt.status === "completed" && exam.examType === "Teacher Assessment") {
+      throw new Error("You have already completed this assessment. Retakes are not allowed.");
+    }
+    if (attempt && attempt.status === "completed") {
+      await CBTAttempt.deleteOne({ _id: attempt._id });
+      attempt = null;
+    }
+    if (!attempt) {
+      attempt = await CBTAttempt.create({
+        examId: exam._id,
+        studentId: student._id,
+        status: "in-progress"
+      });
+    }
+    const questions = await CBTQuestion.find({ examId: exam._id, isDeleted: { $ne: true } }).lean();
+    const safeQuestions = questions.map((q) => ({
+      id: q._id,
+      questionText: q.questionText,
+      options: q.options,
+      marks: q.marks
+    }));
+    return {
+      attemptId: attempt._id,
+      exam,
+      questions: safeQuestions
+    };
+  }),
+  submitExam: protectedProcedure.input(z4.object({
+    attemptId: z4.string(),
+    answers: z4.array(z4.object({
+      questionId: z4.string(),
+      selectedOptionIndex: z4.number().nullable()
+    }))
+  })).mutation(async ({ ctx, input }) => {
+    const attempt = await CBTAttempt.findOne({ _id: input.attemptId, studentId: ctx.user.profileId });
+    if (!attempt) throw new Error("Attempt not found");
+    if (attempt.status === "completed") throw new Error("Exam already submitted");
+    const questions = await CBTQuestion.find({ examId: attempt.examId }).lean();
+    let score = 0;
+    let totalMarks = 0;
+    for (const q of questions) {
+      totalMarks += q.marks || 1;
+      const submittedAnswer = input.answers.find((a) => a.questionId === q._id.toString());
+      if (submittedAnswer && submittedAnswer.selectedOptionIndex === q.correctOptionIndex) {
+        score += q.marks || 1;
+      }
+    }
+    attempt.score = score;
+    attempt.totalMarks = totalMarks;
+    attempt.status = "completed";
+    attempt.completedAt = /* @__PURE__ */ new Date();
+    attempt.answers = input.answers;
+    await attempt.save();
+    return { score, totalMarks };
+  })
+});
+
 // server/routers.ts
 var appRouter = router({
   system: systemRouter,
   auth: authRouter,
   school: schoolRouter,
-  users: usersRouter
+  users: usersRouter,
+  studentPortal: studentPortalRouter
 });
 
 // server/vercel.ts
