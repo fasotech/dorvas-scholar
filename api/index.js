@@ -361,6 +361,11 @@ async function getDashboard(platformUser) {
   if (identity.connection !== "connected") return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   const start = todayStart();
+  await Promise.all([
+    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
+    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
+    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active" } })
+  ]);
   const [totalStudents, activeStudents, maleStudents, femaleStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
     Student.countDocuments({ isDeleted: false }),
     Student.countDocuments({ isDeleted: false, status: "active" }),
@@ -461,6 +466,7 @@ async function createRecord(platformUser, section, payload) {
     return { success: true, id: doc2._id, email };
   }
   const doc = await model.create({
+    status: payload.status || "active",
     ...payload,
     isDeleted: false,
     schoolId: identity.profileId || "default-school"
@@ -946,7 +952,7 @@ var appRouter = router({
 // server/vercel.ts
 import mongoose3 from "mongoose";
 var app = express();
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 var isConnected = false;
 var connectDB = async () => {

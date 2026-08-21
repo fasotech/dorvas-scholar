@@ -26,6 +26,14 @@ export async function getDashboard(platformUser: PlatformUser) {
   if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
 
   const start = todayStart();
+  
+  // Auto-fix ghost records (missing status)
+  await Promise.all([
+    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
+    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
+    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active" } })
+  ]);
+
   const [totalStudents, activeStudents, maleStudents, femaleStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
     Student.countDocuments({ isDeleted: false }),
     Student.countDocuments({ isDeleted: false, status: "active" }),
@@ -156,6 +164,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
   
   // Create generic document for other sections
   const doc = await model.create({
+    status: payload.status || "active",
     ...payload,
     isDeleted: false,
     schoolId: identity.profileId || 'default-school'
