@@ -1,3 +1,228 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// server/models/school.ts
+var school_exports = {};
+__export(school_exports, {
+  AcademicSession: () => AcademicSession,
+  Admission: () => Admission,
+  Announcement: () => Announcement,
+  Assignment: () => Assignment,
+  Attendance: () => Attendance,
+  AuditLog: () => AuditLog,
+  CBTAttempt: () => CBTAttempt,
+  CBTExam: () => CBTExam,
+  CBTQuestion: () => CBTQuestion,
+  ClassNote: () => ClassNote,
+  ClassSubject: () => ClassSubject,
+  Document: () => Document,
+  Exam: () => Exam,
+  ExamAnswer: () => ExamAnswer,
+  ExamAttempt: () => ExamAttempt,
+  Fee: () => Fee,
+  Homework: () => Homework,
+  Message: () => Message,
+  Notification: () => Notification,
+  Parent: () => Parent,
+  Payment: () => Payment,
+  Question: () => Question,
+  ReportCard: () => ReportCard,
+  Result: () => Result,
+  Role: () => Role,
+  SchoolClass: () => SchoolClass,
+  SchoolUser: () => SchoolUser,
+  Student: () => Student,
+  Subject: () => Subject,
+  Teacher: () => Teacher,
+  Term: () => Term,
+  Timetable: () => Timetable
+});
+import mongoose from "mongoose";
+var baseOptions, roleSchema, Role, schoolUserSchema, SchoolUser, studentSchema, Student, teacherSchema, Teacher, parentSchema, Parent, schoolClassSchema, SchoolClass, subjectSchema, Subject, classSubjectSchema, ClassSubject, academicSessionSchema, AcademicSession, termSchema, Term, attendanceSchema, Attendance, examSchema, Exam, questionSchema, Question, examAttemptSchema, ExamAttempt, examAnswerSchema, ExamAnswer, resultSchema, Result, reportCardSchema, ReportCard, feeSchema, Fee, paymentSchema, Payment, announcementSchema, Announcement, messageSchema, Message, notificationSchema, Notification, documentSchema, Document, auditLogSchema, AuditLog, homeworkSchema, Homework, assignmentSchema, Assignment, timetableSchema, Timetable, admissionSchema, Admission, cbtExamSchema, CBTExam, cbtQuestionSchema, CBTQuestion, cbtAttemptSchema, CBTAttempt, classNoteSchema, ClassNote;
+var init_school = __esm({
+  "server/models/school.ts"() {
+    "use strict";
+    baseOptions = { timestamps: true };
+    roleSchema = new mongoose.Schema({ name: String }, baseOptions);
+    Role = mongoose.models.Role || mongoose.model("Role", roleSchema);
+    schoolUserSchema = new mongoose.Schema({
+      email: String,
+      oauthOpenId: String,
+      password: { type: String },
+      displayName: String,
+      role: String,
+      profileType: String,
+      profileId: mongoose.Schema.Types.ObjectId,
+      isActive: { type: Boolean, default: true },
+      isDeleted: { type: Boolean, default: false },
+      photograph: String,
+      telephone: String,
+      gender: String,
+      parentContact: String,
+      academicSession: String,
+      feeBalance: { type: Number, default: 0 },
+      enrollmentStatus: { type: String, default: "Active" }
+    }, baseOptions);
+    SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
+    studentSchema = new mongoose.Schema({
+      name: String,
+      fullName: String,
+      admissionNumber: String,
+      status: String,
+      state: String,
+      address: String,
+      dob: Date,
+      classId: mongoose.Schema.Types.ObjectId,
+      className: String,
+      email: String,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
+    teacherSchema = new mongoose.Schema({
+      name: String,
+      fullName: String,
+      status: String,
+      address: String,
+      email: String,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    Teacher = mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
+    parentSchema = new mongoose.Schema({ name: String, children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
+    Parent = mongoose.models.Parent || mongoose.model("Parent", parentSchema);
+    schoolClassSchema = new mongoose.Schema({ name: String }, baseOptions);
+    SchoolClass = mongoose.models.SchoolClass || mongoose.model("SchoolClass", schoolClassSchema);
+    subjectSchema = new mongoose.Schema({ name: String }, baseOptions);
+    Subject = mongoose.models.Subject || mongoose.model("Subject", subjectSchema);
+    classSubjectSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, teacherId: mongoose.Schema.Types.ObjectId }, baseOptions);
+    ClassSubject = mongoose.models.ClassSubject || mongoose.model("ClassSubject", classSubjectSchema);
+    academicSessionSchema = new mongoose.Schema({ name: String }, baseOptions);
+    AcademicSession = mongoose.models.AcademicSession || mongoose.model("AcademicSession", academicSessionSchema);
+    termSchema = new mongoose.Schema({ name: String }, baseOptions);
+    Term = mongoose.models.Term || mongoose.model("Term", termSchema);
+    attendanceSchema = new mongoose.Schema({
+      studentId: mongoose.Schema.Types.ObjectId,
+      date: Date,
+      periodKey: String,
+      status: String,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    attendanceSchema.index({ studentId: 1, date: 1, periodKey: 1 }, { unique: true });
+    Attendance = mongoose.models.Attendance || mongoose.model("Attendance", attendanceSchema);
+    examSchema = new mongoose.Schema({ name: String, classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
+    Exam = mongoose.models.Exam || mongoose.model("Exam", examSchema);
+    questionSchema = new mongoose.Schema({ examId: mongoose.Schema.Types.ObjectId, text: String }, baseOptions);
+    Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
+    examAttemptSchema = new mongoose.Schema({
+      examId: mongoose.Schema.Types.ObjectId,
+      studentId: mongoose.Schema.Types.ObjectId,
+      attemptNumber: Number
+    }, baseOptions);
+    examAttemptSchema.index({ examId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
+    ExamAttempt = mongoose.models.ExamAttempt || mongoose.model("ExamAttempt", examAttemptSchema);
+    examAnswerSchema = new mongoose.Schema({ attemptId: mongoose.Schema.Types.ObjectId }, baseOptions);
+    ExamAnswer = mongoose.models.ExamAnswer || mongoose.model("ExamAnswer", examAnswerSchema);
+    resultSchema = new mongoose.Schema({
+      studentId: mongoose.Schema.Types.ObjectId,
+      examId: mongoose.Schema.Types.ObjectId,
+      score: Number,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    resultSchema.index({ studentId: 1, examId: 1 }, { unique: true });
+    Result = mongoose.models.Result || mongoose.model("Result", resultSchema);
+    reportCardSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId }, baseOptions);
+    ReportCard = mongoose.models.ReportCard || mongoose.model("ReportCard", reportCardSchema);
+    feeSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId, amount: Number }, baseOptions);
+    Fee = mongoose.models.Fee || mongoose.model("Fee", feeSchema);
+    paymentSchema = new mongoose.Schema({
+      studentId: mongoose.Schema.Types.ObjectId,
+      amount: Number,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
+    announcementSchema = new mongoose.Schema({ title: String, content: String }, baseOptions);
+    Announcement = mongoose.models.Announcement || mongoose.model("Announcement", announcementSchema);
+    messageSchema = new mongoose.Schema({ fromId: mongoose.Schema.Types.ObjectId, toId: mongoose.Schema.Types.ObjectId, body: String }, baseOptions);
+    Message = mongoose.models.Message || mongoose.model("Message", messageSchema);
+    notificationSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, message: String }, baseOptions);
+    Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
+    documentSchema = new mongoose.Schema({ url: String }, baseOptions);
+    Document = mongoose.models.Document || mongoose.model("Document", documentSchema);
+    auditLogSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, targetId: mongoose.Schema.Types.ObjectId, action: String, details: String }, baseOptions);
+    AuditLog = mongoose.models.AuditLog || mongoose.model("AuditLog", auditLogSchema);
+    homeworkSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
+    Homework = mongoose.models.Homework || mongoose.model("Homework", homeworkSchema);
+    assignmentSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
+    Assignment = mongoose.models.Assignment || mongoose.model("Assignment", assignmentSchema);
+    timetableSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId }, baseOptions);
+    Timetable = mongoose.models.Timetable || mongoose.model("Timetable", timetableSchema);
+    admissionSchema = new mongoose.Schema({ studentName: String }, baseOptions);
+    Admission = mongoose.models.Admission || mongoose.model("Admission", admissionSchema);
+    cbtExamSchema = new mongoose.Schema({
+      title: { type: String, required: true },
+      description: String,
+      examType: { type: String, enum: ["Teacher Assessment", "JAMB Practice", "Mock"], default: "Teacher Assessment" },
+      subject: String,
+      targetClass: String,
+      durationMinutes: { type: Number, default: 30 },
+      isPublished: { type: Boolean, default: false },
+      createdBy: mongoose.Schema.Types.ObjectId,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    CBTExam = mongoose.models.CBTExam || mongoose.model("CBTExam", cbtExamSchema);
+    cbtQuestionSchema = new mongoose.Schema({
+      examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
+      questionText: { type: String, required: true },
+      options: [{ type: String, required: true }],
+      correctOptionIndex: { type: Number, required: true },
+      marks: { type: Number, default: 1 },
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    CBTQuestion = mongoose.models.CBTQuestion || mongoose.model("CBTQuestion", cbtQuestionSchema);
+    cbtAttemptSchema = new mongoose.Schema({
+      examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
+      studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
+      startedAt: { type: Date, default: Date.now },
+      completedAt: Date,
+      score: Number,
+      totalMarks: Number,
+      answers: [{
+        questionId: mongoose.Schema.Types.ObjectId,
+        selectedOptionIndex: Number
+      }],
+      status: { type: String, enum: ["in-progress", "completed"], default: "in-progress" }
+    }, baseOptions);
+    CBTAttempt = mongoose.models.CBTAttempt || mongoose.model("CBTAttempt", cbtAttemptSchema);
+    classNoteSchema = new mongoose.Schema({
+      title: { type: String, required: true },
+      content: { type: String, required: true },
+      subject: String,
+      targetClass: String,
+      teacherId: mongoose.Schema.Types.ObjectId,
+      teacherName: String,
+      isDeleted: { type: Boolean, default: false }
+    }, baseOptions);
+    ClassNote = mongoose.models.ClassNote || mongoose.model("ClassNote", classNoteSchema);
+  }
+});
+
 // server/vercel.ts
 import express from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
@@ -26,168 +251,8 @@ var protectedProcedure = t.procedure.use(({ ctx, next }) => {
 // server/_core/systemRouter.ts
 var systemRouter = router({});
 
-// server/models/school.ts
-import mongoose from "mongoose";
-var baseOptions = { timestamps: true };
-var roleSchema = new mongoose.Schema({ name: String }, baseOptions);
-var Role = mongoose.models.Role || mongoose.model("Role", roleSchema);
-var schoolUserSchema = new mongoose.Schema({
-  email: String,
-  oauthOpenId: String,
-  password: { type: String },
-  displayName: String,
-  role: String,
-  profileType: String,
-  profileId: mongoose.Schema.Types.ObjectId,
-  isActive: { type: Boolean, default: true },
-  isDeleted: { type: Boolean, default: false },
-  photograph: String,
-  telephone: String,
-  gender: String,
-  parentContact: String,
-  academicSession: String,
-  feeBalance: { type: Number, default: 0 },
-  enrollmentStatus: { type: String, default: "Active" }
-}, baseOptions);
-var SchoolUser = mongoose.models.SchoolUser || mongoose.model("SchoolUser", schoolUserSchema);
-var studentSchema = new mongoose.Schema({
-  name: String,
-  fullName: String,
-  admissionNumber: String,
-  status: String,
-  state: String,
-  address: String,
-  dob: Date,
-  classId: mongoose.Schema.Types.ObjectId,
-  className: String,
-  email: String,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
-var teacherSchema = new mongoose.Schema({
-  name: String,
-  fullName: String,
-  status: String,
-  address: String,
-  email: String,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var Teacher = mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
-var parentSchema = new mongoose.Schema({ name: String, children: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }] }, baseOptions);
-var Parent = mongoose.models.Parent || mongoose.model("Parent", parentSchema);
-var schoolClassSchema = new mongoose.Schema({ name: String }, baseOptions);
-var SchoolClass = mongoose.models.SchoolClass || mongoose.model("SchoolClass", schoolClassSchema);
-var subjectSchema = new mongoose.Schema({ name: String }, baseOptions);
-var Subject = mongoose.models.Subject || mongoose.model("Subject", subjectSchema);
-var classSubjectSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, teacherId: mongoose.Schema.Types.ObjectId }, baseOptions);
-var ClassSubject = mongoose.models.ClassSubject || mongoose.model("ClassSubject", classSubjectSchema);
-var academicSessionSchema = new mongoose.Schema({ name: String }, baseOptions);
-var AcademicSession = mongoose.models.AcademicSession || mongoose.model("AcademicSession", academicSessionSchema);
-var termSchema = new mongoose.Schema({ name: String }, baseOptions);
-var Term = mongoose.models.Term || mongoose.model("Term", termSchema);
-var attendanceSchema = new mongoose.Schema({
-  studentId: mongoose.Schema.Types.ObjectId,
-  date: Date,
-  periodKey: String,
-  status: String,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-attendanceSchema.index({ studentId: 1, date: 1, periodKey: 1 }, { unique: true });
-var Attendance = mongoose.models.Attendance || mongoose.model("Attendance", attendanceSchema);
-var examSchema = new mongoose.Schema({ name: String, classId: mongoose.Schema.Types.ObjectId, subjectId: mongoose.Schema.Types.ObjectId, isDeleted: { type: Boolean, default: false } }, baseOptions);
-var Exam = mongoose.models.Exam || mongoose.model("Exam", examSchema);
-var questionSchema = new mongoose.Schema({ examId: mongoose.Schema.Types.ObjectId, text: String }, baseOptions);
-var Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
-var examAttemptSchema = new mongoose.Schema({
-  examId: mongoose.Schema.Types.ObjectId,
-  studentId: mongoose.Schema.Types.ObjectId,
-  attemptNumber: Number
-}, baseOptions);
-examAttemptSchema.index({ examId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
-var ExamAttempt = mongoose.models.ExamAttempt || mongoose.model("ExamAttempt", examAttemptSchema);
-var examAnswerSchema = new mongoose.Schema({ attemptId: mongoose.Schema.Types.ObjectId }, baseOptions);
-var ExamAnswer = mongoose.models.ExamAnswer || mongoose.model("ExamAnswer", examAnswerSchema);
-var resultSchema = new mongoose.Schema({
-  studentId: mongoose.Schema.Types.ObjectId,
-  examId: mongoose.Schema.Types.ObjectId,
-  score: Number,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-resultSchema.index({ studentId: 1, examId: 1 }, { unique: true });
-var Result = mongoose.models.Result || mongoose.model("Result", resultSchema);
-var reportCardSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId }, baseOptions);
-var ReportCard = mongoose.models.ReportCard || mongoose.model("ReportCard", reportCardSchema);
-var feeSchema = new mongoose.Schema({ studentId: mongoose.Schema.Types.ObjectId, amount: Number }, baseOptions);
-var Fee = mongoose.models.Fee || mongoose.model("Fee", feeSchema);
-var paymentSchema = new mongoose.Schema({
-  studentId: mongoose.Schema.Types.ObjectId,
-  amount: Number,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
-var announcementSchema = new mongoose.Schema({ title: String, content: String }, baseOptions);
-var Announcement = mongoose.models.Announcement || mongoose.model("Announcement", announcementSchema);
-var messageSchema = new mongoose.Schema({ fromId: mongoose.Schema.Types.ObjectId, toId: mongoose.Schema.Types.ObjectId, body: String }, baseOptions);
-var Message = mongoose.models.Message || mongoose.model("Message", messageSchema);
-var notificationSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, message: String }, baseOptions);
-var Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
-var documentSchema = new mongoose.Schema({ url: String }, baseOptions);
-var Document = mongoose.models.Document || mongoose.model("Document", documentSchema);
-var auditLogSchema = new mongoose.Schema({ userId: mongoose.Schema.Types.ObjectId, targetId: mongoose.Schema.Types.ObjectId, action: String, details: String }, baseOptions);
-var AuditLog = mongoose.models.AuditLog || mongoose.model("AuditLog", auditLogSchema);
-var homeworkSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
-var Homework = mongoose.models.Homework || mongoose.model("Homework", homeworkSchema);
-var assignmentSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId, title: String }, baseOptions);
-var Assignment = mongoose.models.Assignment || mongoose.model("Assignment", assignmentSchema);
-var timetableSchema = new mongoose.Schema({ classId: mongoose.Schema.Types.ObjectId }, baseOptions);
-var Timetable = mongoose.models.Timetable || mongoose.model("Timetable", timetableSchema);
-var admissionSchema = new mongoose.Schema({ studentName: String }, baseOptions);
-var Admission = mongoose.models.Admission || mongoose.model("Admission", admissionSchema);
-var cbtExamSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
-  examType: { type: String, enum: ["Teacher Assessment", "JAMB Practice", "Mock"], default: "Teacher Assessment" },
-  subject: String,
-  targetClass: String,
-  durationMinutes: { type: Number, default: 30 },
-  isPublished: { type: Boolean, default: false },
-  createdBy: mongoose.Schema.Types.ObjectId,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var CBTExam = mongoose.models.CBTExam || mongoose.model("CBTExam", cbtExamSchema);
-var cbtQuestionSchema = new mongoose.Schema({
-  examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
-  questionText: { type: String, required: true },
-  options: [{ type: String, required: true }],
-  correctOptionIndex: { type: Number, required: true },
-  marks: { type: Number, default: 1 },
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var CBTQuestion = mongoose.models.CBTQuestion || mongoose.model("CBTQuestion", cbtQuestionSchema);
-var cbtAttemptSchema = new mongoose.Schema({
-  examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
-  startedAt: { type: Date, default: Date.now },
-  completedAt: Date,
-  score: Number,
-  totalMarks: Number,
-  answers: [{
-    questionId: mongoose.Schema.Types.ObjectId,
-    selectedOptionIndex: Number
-  }],
-  status: { type: String, enum: ["in-progress", "completed"], default: "in-progress" }
-}, baseOptions);
-var CBTAttempt = mongoose.models.CBTAttempt || mongoose.model("CBTAttempt", cbtAttemptSchema);
-var classNoteSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  content: { type: String, required: true },
-  subject: String,
-  targetClass: String,
-  teacherId: mongoose.Schema.Types.ObjectId,
-  teacherName: String,
-  isDeleted: { type: Boolean, default: false }
-}, baseOptions);
-var ClassNote = mongoose.models.ClassNote || mongoose.model("ClassNote", classNoteSchema);
+// server/services/studentProfile.ts
+init_school();
 
 // server/mongo.ts
 import mongoose2 from "mongoose";
@@ -220,7 +285,11 @@ function getMongoConnectionIssue() {
   return lastConnectionError;
 }
 
+// server/services/school.ts
+init_school();
+
 // server/services/schoolAccess.ts
+init_school();
 import { Types } from "mongoose";
 function canAccessSection(role, section) {
   if (!role) return false;
@@ -505,6 +574,7 @@ var schoolRouter = router({
 
 // server/routers/auth.ts
 import { z as z2 } from "zod";
+init_school();
 import bcrypt2 from "bcryptjs";
 import jwt from "jsonwebtoken";
 var JWT_SECRET2 = process.env.JWT_SECRET || "default_unsafe_secret";
@@ -598,6 +668,7 @@ var authRouter = router({
 
 // server/routers/users.ts
 import { z as z3 } from "zod";
+init_school();
 import bcrypt3 from "bcryptjs";
 var usersRouter = router({
   listUsers: protectedProcedure.query(async ({ ctx }) => {
@@ -663,9 +734,12 @@ var usersRouter = router({
 
 // server/routers/studentPortal.ts
 import { z as z4 } from "zod";
+init_school();
 var studentPortalRouter = router({
   getDashboardData: protectedProcedure.query(async ({ ctx }) => {
-    const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+    const { SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const schoolUser = await SchoolUser2.findOne({ _id: ctx.user.id });
+    const student = schoolUser && schoolUser.profileId ? await Student.findOne({ _id: schoolUser.profileId, isDeleted: { $ne: true } }) : null;
     if (!student) throw new Error("Student profile not found");
     const activeExams = await CBTExam.find({
       isPublished: true,
@@ -699,7 +773,9 @@ var studentPortalRouter = router({
     };
   }),
   startExam: protectedProcedure.input(z4.object({ examId: z4.string() })).mutation(async ({ ctx, input }) => {
-    const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+    const { SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const schoolUser = await SchoolUser2.findOne({ _id: ctx.user.id });
+    const student = schoolUser && schoolUser.profileId ? await Student.findOne({ _id: schoolUser.profileId, isDeleted: { $ne: true } }) : null;
     if (!student) throw new Error("Student profile not found");
     const exam = await CBTExam.findOne({ _id: input.examId, isDeleted: { $ne: true } });
     if (!exam) throw new Error("Exam not found");
@@ -738,7 +814,9 @@ var studentPortalRouter = router({
       selectedOptionIndex: z4.number().nullable()
     }))
   })).mutation(async ({ ctx, input }) => {
-    const attempt = await CBTAttempt.findOne({ _id: input.attemptId, studentId: ctx.user.profileId });
+    const { SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const schoolUser = await SchoolUser2.findOne({ _id: ctx.user.id });
+    const attempt = schoolUser && schoolUser.profileId ? await CBTAttempt.findOne({ _id: input.attemptId, studentId: schoolUser.profileId }) : null;
     if (!attempt) throw new Error("Attempt not found");
     if (attempt.status === "completed") throw new Error("Exam already submitted");
     const questions = await CBTQuestion.find({ examId: attempt.examId }).lean();

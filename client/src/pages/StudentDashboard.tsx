@@ -19,6 +19,7 @@ export default function StudentDashboard() {
     return <div className="p-12 text-center text-red-600">Failed to load student dashboard. Please ensure you are logged in as a student.</div>;
   }
 
+  if (!query.data) return null;
   const { student, exams, recentNotes } = query.data!;
 
   const handleStartExam = (exam: any) => {

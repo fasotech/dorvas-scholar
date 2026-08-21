@@ -4,7 +4,9 @@ import { CBTExam, CBTQuestion, CBTAttempt, ClassNote, Student } from "../models/
 
 export const studentPortalRouter = router({
   getDashboardData: protectedProcedure.query(async ({ ctx }) => {
-    const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+    const { SchoolUser } = require("../models/school");
+    const schoolUser = await SchoolUser.findOne({ _id: ctx.user.id });
+    const student = schoolUser && schoolUser.profileId ? await Student.findOne({ _id: schoolUser.profileId, isDeleted: { $ne: true } }) : null;
     if (!student) throw new Error("Student profile not found");
 
     const activeExams = await CBTExam.find({ 
@@ -47,7 +49,9 @@ export const studentPortalRouter = router({
   startExam: protectedProcedure
     .input(z.object({ examId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const student = await Student.findOne({ _id: ctx.user.profileId, isDeleted: { $ne: true } });
+      const { SchoolUser } = require("../models/school");
+      const schoolUser = await SchoolUser.findOne({ _id: ctx.user.id });
+      const student = schoolUser && schoolUser.profileId ? await Student.findOne({ _id: schoolUser.profileId, isDeleted: { $ne: true } }) : null;
       if (!student) throw new Error("Student profile not found");
 
       const exam = await CBTExam.findOne({ _id: input.examId, isDeleted: { $ne: true } });
@@ -101,7 +105,9 @@ export const studentPortalRouter = router({
       }))
     }))
     .mutation(async ({ ctx, input }) => {
-      const attempt = await CBTAttempt.findOne({ _id: input.attemptId, studentId: ctx.user.profileId });
+      const { SchoolUser } = require("../models/school");
+      const schoolUser = await SchoolUser.findOne({ _id: ctx.user.id });
+      const attempt = schoolUser && schoolUser.profileId ? await CBTAttempt.findOne({ _id: input.attemptId, studentId: schoolUser.profileId }) : null;
       if (!attempt) throw new Error("Attempt not found");
       if (attempt.status === 'completed') throw new Error("Exam already submitted");
 
