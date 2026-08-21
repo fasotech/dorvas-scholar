@@ -133,7 +133,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
     recordPayload.name = recordPayload.fullName;
     
     const doc = await model.create({
-    status: payload.status || (section === "classes" ? "active" : undefined),
+    status: payload.status || "active",
       ...recordPayload,
       isDeleted: false,
       schoolId: identity.profileId || 'default-school'

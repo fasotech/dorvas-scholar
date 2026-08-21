@@ -443,7 +443,7 @@ async function createRecord(platformUser, section, payload) {
     delete recordPayload.password;
     recordPayload.name = recordPayload.fullName;
     const doc2 = await model.create({
-      status: payload.status || (section === "classes" ? "active" : void 0),
+      status: payload.status || "active",
       ...recordPayload,
       isDeleted: false,
       schoolId: identity.profileId || "default-school"
