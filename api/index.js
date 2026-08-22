@@ -2,6 +2,12 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -710,8 +716,42 @@ var authRouter = router({
     if (!ctx.user || ctx.user.role !== "admin") {
       throw new Error("Only admins can impersonate users.");
     }
-    const targetUser = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
-    if (!targetUser) throw new Error("User not found");
+    let targetUser = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
+    if (!targetUser) {
+      const { Teacher: Teacher2, Student: Student2 } = (init_school(), __toCommonJS(school_exports));
+      const teacher = await Teacher2.findOne({ email: input.email });
+      if (teacher) {
+        const bcrypt4 = __require("bcryptjs");
+        const hashedPassword = await bcrypt4.hash("Password123!", 10);
+        targetUser = await SchoolUser.create({
+          email: input.email.toLowerCase(),
+          password: hashedPassword,
+          displayName: teacher.fullName,
+          role: "teacher",
+          profileType: "Teacher",
+          profileId: teacher._id,
+          isActive: true,
+          isDeleted: false
+        });
+      } else {
+        const student = await Student2.findOne({ email: input.email });
+        if (student) {
+          const bcrypt4 = __require("bcryptjs");
+          const hashedPassword = await bcrypt4.hash("Password123!", 10);
+          targetUser = await SchoolUser.create({
+            email: input.email.toLowerCase(),
+            password: hashedPassword,
+            displayName: student.fullName,
+            role: "student",
+            profileType: "Student",
+            profileId: student._id,
+            isActive: true,
+            isDeleted: false
+          });
+        }
+      }
+    }
+    if (!targetUser) throw new Error("User not found in the system.");
     const token = jwt.sign(
       { id: targetUser._id, email: targetUser.email, role: targetUser.role, name: targetUser.displayName },
       JWT_SECRET2,

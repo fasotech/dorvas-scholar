@@ -17,13 +17,7 @@ export default function TeacherProfile() {
     { enabled: !!teacherId }
   );
 
-  const impersonate = trpc.auth.impersonate.useMutation({
-    onSuccess: (res: any) => {
-      if (res.token) sessionStorage.setItem("manus-cookie", `auth_token=${res.token}`);
-      window.location.href = "/dashboard";
-    },
-    onError: (err) => toast.error(err.message)
-  });
+  const impersonate = trpc.auth.impersonate.useMutation();
 
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -73,10 +67,17 @@ export default function TeacherProfile() {
       toast.error("Teacher has no email to impersonate.");
       return;
     }
-    toast.loading("Switching context...", { duration: 1500 });
-    setTimeout(() => {
-      impersonate.mutate({ email: teacher.email });
-    }, 500);
+    const toastId = toast.loading("Switching context...");
+    impersonate.mutate({ email: teacher.email }, {
+      onSuccess: (res: any) => {
+        toast.success("Context switched", { id: toastId });
+        if (res.token) sessionStorage.setItem("manus-cookie", `auth_token=${res.token}`);
+        window.location.href = "/dashboard";
+      },
+      onError: (err) => {
+        toast.error(err.message, { id: toastId });
+      }
+    });
   };
 
   return (
