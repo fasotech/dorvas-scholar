@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "../lib/trpc";
 import { 
   ArrowLeft, Edit, Download, Trash, FileText, CheckCircle2, 
-  XCircle, MessageCircle, FileDown, Eye, AlertCircle, LogIn, Loader2
+  XCircle, MessageCircle, FileDown, Eye, EyeOff, AlertCircle, LogIn, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AvatarUploader from "../components/AvatarUploader";
@@ -13,6 +13,8 @@ export default function StudentProfile({ params }: { params: { studentId: string
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
 
   const trpcContext = trpc.useContext();
@@ -88,6 +90,12 @@ export default function StudentProfile({ params }: { params: { studentId: string
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (editForm.password || editForm.confirmPassword) {
+      if (editForm.password !== editForm.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+    }
     updateMutation.mutate({ id: student._id, updates: editForm });
   };
 

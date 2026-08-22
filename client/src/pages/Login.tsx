@@ -3,12 +3,14 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "../lib/trpc";
 import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({

@@ -77,6 +77,13 @@ export async function updateStudentProfile(platformUser: PlatformUser, studentId
   const role = identity.role?.toLowerCase() || '';
   if (role !== 'admin' && role !== 'administrator') throw new Error('Unauthorized: Only admins can edit profiles');
 
+  if (updates.password) {
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash(updates.password, 10);
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword } });
+    delete updates.password; // Don't save plaintext to Student record
+  }
+
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
   
   // Keep the login account email in sync if it changed
