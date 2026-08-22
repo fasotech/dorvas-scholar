@@ -544,6 +544,12 @@ async function updateStudentProfile(platformUser, studentId, updates) {
   if (identity.connection !== "connected") throw new Error("Database not connected");
   const role = identity.role?.toLowerCase() || "";
   if (role !== "admin" && role !== "administrator") throw new Error("Unauthorized: Only admins can edit profiles");
+  if (updates.password) {
+    const bcrypt4 = __require("bcryptjs");
+    const hashedPassword = await bcrypt4.hash(updates.password, 10);
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword } });
+    delete updates.password;
+  }
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
   if (updates.email) {
     await SchoolUser.updateMany({ profileId: studentId }, { $set: { email: updates.email.toLowerCase() } });
