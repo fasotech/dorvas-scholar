@@ -66,7 +66,7 @@ var baseOptions, roleSchema, Role, schoolUserSchema, SchoolUser, studentSchema, 
 var init_school = __esm({
   "server/models/school.ts"() {
     "use strict";
-    baseOptions = { timestamps: true };
+    baseOptions = { timestamps: true, strict: false };
     roleSchema = new mongoose.Schema({ name: String }, baseOptions);
     Role = mongoose.models.Role || mongoose.model("Role", roleSchema);
     schoolUserSchema = new mongoose.Schema({
@@ -328,9 +328,9 @@ async function getDashboard(platformUser) {
   if (!identity.linked) return { identity, metrics: [], upcoming: [], followUps: [], charts: null };
   const start = todayStart();
   await Promise.all([
-    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
-    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
-    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active" } })
+    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } }),
+    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } }),
+    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } })
   ]);
   const [totalStudents, activeStudents, maleStudents, femaleStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
     Student.countDocuments({ isDeleted: false }),
