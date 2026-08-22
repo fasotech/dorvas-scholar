@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 export type SchoolRole = "admin" | "teacher" | "student" | "parent";
 
-const baseOptions = { timestamps: true };
+const baseOptions = { timestamps: true, strict: false };
 
 const roleSchema = new mongoose.Schema({ name: String }, baseOptions);
 export const Role = mongoose.models.Role || mongoose.model("Role", roleSchema);

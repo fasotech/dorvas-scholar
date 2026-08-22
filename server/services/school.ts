@@ -29,9 +29,9 @@ export async function getDashboard(platformUser: PlatformUser) {
   
   // Auto-fix ghost records (missing status)
   await Promise.all([
-    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
-    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active" } }),
-    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active" } })
+    Student.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } }),
+    Teacher.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } }),
+    SchoolClass.updateMany({ status: { $exists: false } }, { $set: { status: "active", isDeleted: false } })
   ]);
 
   const [totalStudents, activeStudents, maleStudents, femaleStudents, totalTeachers, totalClasses, upcoming] = await Promise.all([
