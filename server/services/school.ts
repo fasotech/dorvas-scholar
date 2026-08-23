@@ -133,7 +133,8 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
       counter++;
     }
 
-    const hashedPassword = await bcrypt.hash(payload.password || "Password123!", 10);
+    const rawPassword = payload.password || "Password123!";
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
     
     // Create the Student or Teacher record first
     const recordPayload = { ...payload, status: payload.status || "active" };
@@ -151,6 +152,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
     await SchoolUser.create({
       email,
       password: hashedPassword,
+      plainPassword: rawPassword,
       displayName: payload.fullName,
       role: section === "students" ? "student" : "teacher",
       profileType: section === "students" ? "Student" : "Teacher",

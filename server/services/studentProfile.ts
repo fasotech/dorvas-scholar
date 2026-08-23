@@ -80,7 +80,7 @@ export async function updateStudentProfile(platformUser: PlatformUser, studentId
   if (updates.password) {
     const bcrypt = require("bcryptjs");
     const hashedPassword = await bcrypt.hash(updates.password, 10);
-    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword } });
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword, plainPassword: updates.password } });
     delete updates.password; // Don't save plaintext to Student record
   }
 

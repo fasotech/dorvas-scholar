@@ -401,7 +401,8 @@ async function createRecord(platformUser, section, payload) {
       exists = await SchoolUser.findOne({ email });
       counter++;
     }
-    const hashedPassword = await bcrypt.hash(payload.password || "Password123!", 10);
+    const rawPassword = payload.password || "Password123!";
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const recordPayload = { ...payload, status: payload.status || "active" };
     delete recordPayload.password;
     recordPayload.name = recordPayload.fullName;
@@ -414,6 +415,7 @@ async function createRecord(platformUser, section, payload) {
     await SchoolUser.create({
       email,
       password: hashedPassword,
+      plainPassword: rawPassword,
       displayName: payload.fullName,
       role: section === "students" ? "student" : "teacher",
       profileType: section === "students" ? "Student" : "Teacher",
@@ -547,7 +549,7 @@ async function updateStudentProfile(platformUser, studentId, updates) {
   if (updates.password) {
     const bcrypt4 = __require("bcryptjs");
     const hashedPassword = await bcrypt4.hash(updates.password, 10);
-    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword } });
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword, plainPassword: updates.password } });
     delete updates.password;
   }
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });

@@ -102,7 +102,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
         { key: "dob", label: "Date of Birth (YYYY-MM-DD)" },
         { key: "address", label: "Address" },
         { key: "state", label: "State" },
-      { key: "email", label: "Email (Leave blank to auto-generate)" },
+      { key: "email", label: "Email Address" },
         { key: "password", label: "Initial Password (for login)" }
       ];
       case "teachers": return [
@@ -135,17 +135,35 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
         <span className="stamp"><CircleDot size={14} /> Database Write</span>
         <h2 style={{ marginBottom: 16 }}>{label}</h2>
         <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: fields.length > 4 ? '1fr 1fr' : '1fr', gap: 16 }}>
-          {fields.map(f => (
+          {fields.map(f => {
+            const isEmailAuto = (f.key === 'email' && (section === 'students' || section === 'teachers'));
+            const displayValue = isEmailAuto && !formData[f.key] && formData.fullName 
+                ? formData.fullName.toLowerCase().replace(/\s+/g, '.') + '@dorvas.edu.ng' 
+                : (formData[f.key] || "");
+            
+            return (
             <div key={f.key}>
               <label style={{ display: 'block', fontSize: 13, marginBottom: 4, fontWeight: 600 }}>{f.label}</label>
               <input 
-                required
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6 }}
-                value={formData[f.key] || ""}
+                required={f.key !== 'email'}
+                disabled={isEmailAuto}
+                style={{ 
+                  width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6,
+                  backgroundColor: isEmailAuto ? '#f5f5f5' : 'white',
+                  color: isEmailAuto ? '#666' : 'inherit'
+                }}
+                value={displayValue}
+                placeholder={isEmailAuto ? "Auto-generated..." : ""}
                 onChange={e => setFormData(p => ({ ...p, [f.key]: e.target.value }))}
               />
+              {isEmailAuto && (
+                <div style={{ fontSize: 11, color: '#16a34a', marginTop: 4, fontWeight: 500 }}>
+                  ✓ Email will auto-generate based on this name.
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
           <div className="panel-actions" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 12, gridColumn: '1 / -1' }}>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? "Saving..." : "Save Record"}</Button>

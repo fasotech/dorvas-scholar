@@ -108,10 +108,14 @@ export default function StudentProfile({ params }: { params: { studentId: string
       gender: student.gender || "",
       parentContact: student.parentContact || "",
       className: student.className || "",
+
       address: student.address || "",
       academicSession: student.academicSession || "",
-      feeBalance: student.feeBalance || 0
+      feeBalance: student.feeBalance || 0,
+      password: student.plainPassword || "",
+      confirmPassword: student.plainPassword || ""
     });
+
     setIsEditModalOpen(true);
   };
 
