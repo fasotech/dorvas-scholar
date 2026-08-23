@@ -11,7 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 import {
   AlertCircle, ArrowRight, ArrowUpRight, Award, Bell, BookOpen, CalendarDays, CheckCircle2, CircleDot,
-  ClipboardCheck, Download, GraduationCap, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageCircle,
+  ClipboardCheck, Download, Eye, EyeOff, GraduationCap, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageCircle,
   Plus, Search, School, Settings, SlidersHorizontal, Sparkles, Users, WalletCards, X, type LucideIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -91,6 +91,14 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
   });
 
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  const generateAdmission = () => {
+    const year = new Date().getFullYear();
+    const nextYear = year + 1;
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    setFormData(p => ({ ...p, admissionNumber: `${year}/${nextYear}/${randomNum}` }));
+  };
 
   // Define fields based on section
   const fields = useMemo(() => {
@@ -98,7 +106,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
       case "students": return [
         { key: "fullName", label: "Full Name" },
       { key: "className", label: "Class Name" }, 
-        { key: "admissionNumber", label: "Admission Number" },
+        { key: "admissionNumber", label: "Reg. Number" },
         { key: "dob", label: "Date of Birth" },
         { key: "address", label: "Address" },
         { key: "state", label: "State" },
@@ -138,25 +146,48 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
           {fields.map(f => {
             const isEmailAuto = (f.key === 'email' && (section === 'students' || section === 'teachers'));
             const displayValue = isEmailAuto && !formData[f.key] && formData.fullName 
-                ? formData.fullName.toLowerCase().replace(/\s+/g, '.') + '@dorvas.edu.ng' 
+                ? formData.fullName.toLowerCase().replace(/\s+/g, '.') + '@springdrill.edu.ng' 
                 : (formData[f.key] || "");
             
             return (
             <div key={f.key}>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, fontWeight: 600 }}>{f.label}</label>
-              <input 
-                type={f.key === 'dob' ? 'date' : (f.key === 'password' ? 'password' : 'text')}
-                required={f.key !== 'email'}
-                disabled={isEmailAuto}
-                style={{ 
-                  width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6,
-                  backgroundColor: isEmailAuto ? '#f5f5f5' : 'white',
-                  color: isEmailAuto ? '#666' : 'inherit'
-                }}
-                value={displayValue}
-                placeholder={isEmailAuto ? "Auto-generated..." : ""}
-                onChange={e => setFormData(p => ({ ...p, [f.key]: e.target.value }))}
-              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 4 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600 }}>{f.label}</label>
+                {f.key === 'admissionNumber' && (
+                  <Button type="button" variant="outline" size="sm" style={{ padding: '0 8px', height: 24, fontSize: 11 }} onClick={generateAdmission}>Generate</Button>
+                )}
+              </div>
+              
+              {f.key === 'password' ? (
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    style={{ 
+                      width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6
+                    }}
+                    value={formData[f.key] || ""}
+                    onChange={e => setFormData(p => ({ ...p, [f.key]: e.target.value }))}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: 12, top: 10, background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              ) : (
+                <input 
+                  type={f.key === 'dob' ? 'date' : 'text'}
+                  required={f.key !== 'email'}
+                  disabled={isEmailAuto}
+                  style={{ 
+                    width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6,
+                    backgroundColor: isEmailAuto ? '#f5f5f5' : 'white',
+                    color: isEmailAuto ? '#666' : 'inherit'
+                  }}
+                  value={displayValue}
+                  placeholder={isEmailAuto ? "Auto-generated..." : ""}
+                  onChange={e => setFormData(p => ({ ...p, [f.key]: e.target.value }))}
+                />
+              )}
               {isEmailAuto && (
                 <div style={{ fontSize: 11, color: '#16a34a', marginTop: 4, fontWeight: 500 }}>
                   ✓ Email will auto-generate based on this name.

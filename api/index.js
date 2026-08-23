@@ -393,11 +393,11 @@ async function createRecord(platformUser, section, payload) {
   const definition = recordDefinitions[section];
   const model = definition.model;
   if (section === "students" || section === "teachers") {
-    let email = payload.email || payload.fullName.toLowerCase().replace(/\s+/g, ".") + "@dorvas.edu.ng";
+    let email = payload.email || payload.fullName.toLowerCase().replace(/\s+/g, ".") + "@springdrill.edu.ng";
     let exists = await SchoolUser.findOne({ email });
     let counter = 1;
     while (exists) {
-      email = payload.fullName.toLowerCase().replace(/\s+/g, ".") + counter + "@dorvas.edu.ng";
+      email = payload.fullName.toLowerCase().replace(/\s+/g, ".") + counter + "@springdrill.edu.ng";
       exists = await SchoolUser.findOne({ email });
       counter++;
     }

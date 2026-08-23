@@ -122,13 +122,13 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
   
   // Custom logic for Students and Teachers to auto-generate login accounts
   if (section === "students" || section === "teachers") {
-    let email = payload.email || (payload.fullName.toLowerCase().replace(/\s+/g, '.') + '@dorvas.edu.ng');
+    let email = payload.email || (payload.fullName.toLowerCase().replace(/\s+/g, '.') + '@springdrill.edu.ng');
     
     // Check if email exists
     let exists = await SchoolUser.findOne({ email });
     let counter = 1;
     while(exists) {
-      email = payload.fullName.toLowerCase().replace(/\s+/g, '.') + counter + '@dorvas.edu.ng';
+      email = payload.fullName.toLowerCase().replace(/\s+/g, '.') + counter + '@springdrill.edu.ng';
       exists = await SchoolUser.findOne({ email });
       counter++;
     }
