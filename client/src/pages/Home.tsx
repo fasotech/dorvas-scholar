@@ -99,7 +99,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
         { key: "fullName", label: "Full Name" },
       { key: "className", label: "Class Name" }, 
         { key: "admissionNumber", label: "Admission Number" },
-        { key: "dob", label: "Date of Birth (YYYY-MM-DD)" },
+        { key: "dob", label: "Date of Birth" },
         { key: "address", label: "Address" },
         { key: "state", label: "State" },
       { key: "email", label: "Email Address" },
@@ -145,6 +145,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
             <div key={f.key}>
               <label style={{ display: 'block', fontSize: 13, marginBottom: 4, fontWeight: 600 }}>{f.label}</label>
               <input 
+                type={f.key === 'dob' ? 'date' : (f.key === 'password' ? 'password' : 'text')}
                 required={f.key !== 'email'}
                 disabled={isEmailAuto}
                 style={{ 
