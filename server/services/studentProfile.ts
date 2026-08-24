@@ -54,6 +54,15 @@ export async function getStudentProfile(platformUser: PlatformUser, studentId: s
   // Audit history
   const auditLogs = await AuditLog.find({ targetId: studentId }).sort({ createdAt: -1 }).limit(20).lean();
 
+  // Fetch the associated login account to ensure we have the latest email
+  const schoolUser = await SchoolUser.findOne({ profileId: studentId, isDeleted: { $ne: true } }).lean();
+  if (schoolUser && schoolUser.email && !student.email) {
+    student.email = schoolUser.email;
+  } else if (schoolUser && schoolUser.email && student.email !== schoolUser.email) {
+    // Keep it in sync if it got desynchronized
+    student.email = schoolUser.email;
+  }
+
   return {
     student,
     attendanceStats,
