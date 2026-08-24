@@ -105,13 +105,14 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
     switch (section) {
       case "students": return [
         { key: "fullName", label: "Full Name" },
-      { key: "className", label: "Class Name" }, 
+        { key: "className", label: "Class Name" }, 
         { key: "admissionNumber", label: "Reg. Number" },
         { key: "dob", label: "Date of Birth" },
         { key: "address", label: "Address" },
         { key: "state", label: "State" },
-      { key: "email", label: "Email Address" },
-        { key: "password", label: "Initial Password (for login)" }
+        { key: "email", label: "Email Address" },
+        { key: "password", label: "Initial Password (for login)" },
+        { key: "profilePicture", label: "Student's Photo", type: "image" }
       ];
       case "teachers": return [
         { key: "fullName", label: "Full Name" },
@@ -158,7 +159,34 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
                 )}
               </div>
               
-              {f.key === 'password' ? (
+              {f.type === 'image' ? (
+                <div style={{ marginTop: 8 }}>
+                  {formData[f.key] && (
+                    <img src={formData[f.key]} alt="Preview" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, marginBottom: 8, border: '1px solid #ddd' }} />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setFormData(p => ({ ...p, [f.key]: reader.result as string }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    style={{
+                      width: '100%', padding: '4px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12, backgroundColor: '#f0f4f8'
+                    }}
+                  />
+                  <div style={{ fontSize: 11, color: '#333', marginTop: 8, fontStyle: 'italic' }}>
+                    <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '2px 6px', borderRadius: 2, marginRight: 6, fontWeight: 'bold', fontStyle: 'normal' }}>NOTE!</span>
+                    Image must not be more than 500px in size.
+                  </div>
+                </div>
+              ) : f.key === 'password' ? (
                 <div style={{ position: 'relative' }}>
                   <input 
                     type={showPassword ? 'text' : 'password'}
@@ -239,7 +267,17 @@ function Workspace({ section, onCreate }: { section: ProtectedSection; onCreate:
       className={isClickable ? "hover:bg-gray-50 transition-colors" : ""}
     >
       {cells.map((cell: string, index: number) => 
-        <td key={index}>{index === 0 ? <b>{cell}</b> : index === cells.length - 1 ? <span className="status-pill">{cell}</span> : cell}</td>
+        <td key={index}>
+          {typeof cell === 'string' && cell.startsWith('data:image/') ? (
+            <img src={cell} alt="Profile" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '50%' }} />
+          ) : (index === 0 || index === 1) ? (
+            <b>{cell}</b>
+          ) : index === cells.length - 1 ? (
+            <span className="status-pill">{cell}</span>
+          ) : (
+            cell
+          )}
+        </td>
       )}
     </tr>
   );

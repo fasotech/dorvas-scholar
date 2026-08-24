@@ -104,6 +104,7 @@ export default function StudentProfile({ params }: { params: { studentId: string
       fullName: student.fullName || "",
       email: student.email || "",
       telephone: student.telephone || "",
+      profilePicture: student.profilePicture || student.photograph || "",
       dob: student.dob ? new Date(student.dob).toISOString().split('T')[0] : "",
       gender: student.gender || "",
       parentContact: student.parentContact || "",
@@ -136,8 +137,8 @@ export default function StudentProfile({ params }: { params: { studentId: string
         <div className="absolute top-0 left-0 w-full h-8 bg-[#1b4332]" />
         <div className="relative z-10 flex gap-4 mt-2">
           <div className="w-20 h-24 bg-gray-200 border-2 border-white shadow-sm overflow-hidden shrink-0">
-            {student.photograph ? (
-              <img src={student.photograph} alt="Student" className="w-full h-full object-cover" />
+            {(student.profilePicture || student.photograph) ? (
+              <img src={student.profilePicture || student.photograph} alt="Student" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 font-serif text-3xl">
                 {student.fullName?.charAt(0) || "S"}
@@ -160,8 +161,8 @@ export default function StudentProfile({ params }: { params: { studentId: string
       <main className="max-w-6xl mx-auto px-6 mt-8 print:hidden">
         <div className="flex flex-col md:flex-row gap-6 mb-8 items-start">
           <div className="w-32 h-32 bg-gray-200 rounded-xl overflow-hidden shrink-0 border-4 border-white shadow-md">
-            {student.photograph ? (
-              <img src={student.photograph} alt="Student" className="w-full h-full object-cover" />
+            {(student.profilePicture || student.photograph) ? (
+              <img src={student.profilePicture || student.photograph} alt="Student" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 font-serif text-3xl">
                 {student.fullName?.charAt(0) || "S"}
@@ -283,6 +284,31 @@ export default function StudentProfile({ params }: { params: { studentId: string
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="edit-student-form" onSubmit={handleEditSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2 flex flex-col mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Student's Photo</label>
+                  {editForm.profilePicture && (
+                    <img src={editForm.profilePicture} alt="Preview" className="w-32 h-32 object-cover rounded mb-2 border border-gray-200" />
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEditForm(p => ({ ...p, profilePicture: reader.result as string }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="p-2 border rounded bg-gray-50 text-sm max-w-sm" 
+                  />
+                  <div className="text-[11px] text-gray-600 mt-2 italic">
+                    <span className="bg-red-500 text-white px-1 py-0.5 rounded mr-1 font-bold not-italic">NOTE!</span>
+                    Image must not be more than 500px in size.
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                   <input required className="w-full p-2 border rounded" value={editForm.fullName} onChange={e => setEditForm({...editForm, fullName: e.target.value})} />

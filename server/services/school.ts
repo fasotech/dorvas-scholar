@@ -72,7 +72,7 @@ export async function getDashboard(platformUser: PlatformUser) {
 }
 
 const recordDefinitions: Record<DashboardSection, { columns: string[]; model: any; fields: string[] }> = {
-  students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
+  students: { columns: ["Photo", "Student", "Admission no.", "Status", "Created"], model: Student, fields: ["profilePicture", "fullName", "admissionNumber", "status", "createdAt"] },
   teachers: { columns: ["Teacher", "Status", "Created"], model: Teacher, fields: ["fullName", "status", "createdAt"] },
   classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
   attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
