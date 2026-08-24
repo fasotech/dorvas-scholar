@@ -1,4 +1,4 @@
-import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp, CalendarDays } from "lucide-react";
+import { Users, GraduationCap, School, BookOpen, Clock, Activity, ArrowRight, TrendingUp, CalendarDays, Globe, Monitor, MessageCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, CartesianGrid, Legend } from "recharts";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -42,26 +42,36 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
       </div>
 
       {/* Colorful Educare-style Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-0 rounded-lg overflow-hidden shadow-sm mb-8 bg-white border border-gray-100">
-        <div className="bg-[#3498db] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
-          <span className="text-4xl font-bold">{activeStudents}</span>
-          <span className="text-xs uppercase mt-1 opacity-90">Active Students</span>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+        <div className="bg-[#3498db] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("students")}>
+          <Users size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">{activeStudents}</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Active Students</span>
         </div>
-        <div className="bg-[#2ecc71] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
-          <span className="text-4xl font-bold">{maleStudents}</span>
-          <span className="text-xs uppercase mt-1 opacity-90">Male Students</span>
+        <div className="bg-[#2ecc71] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("students")}>
+          <Users size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">{maleStudents}</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Male Students</span>
         </div>
-        <div className="bg-[#f1c40f] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("students")}>
-          <span className="text-4xl font-bold">{femaleStudents}</span>
-          <span className="text-xs uppercase mt-1 opacity-90">Female Students</span>
+        <div className="bg-[#f1c40f] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("students")}>
+          <Users size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">{femaleStudents}</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Female Students</span>
         </div>
-        <div className="bg-[#1abc9c] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("classes")}>
-          <span className="text-4xl font-bold">{totalClasses}</span>
-          <span className="text-xs uppercase mt-1 opacity-90">Classes</span>
+        <div className="bg-[#1abc9c] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("classes")}>
+          <Monitor size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">{totalClasses}</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Classes</span>
         </div>
-        <div className="bg-[#9b59b6] text-white p-5 flex flex-col items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" onClick={() => onNavigate("teachers")}>
-          <span className="text-4xl font-bold">{totalTeachers}</span>
-          <span className="text-xs uppercase mt-1 opacity-90">Teachers</span>
+        <div className="bg-[#9b59b6] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("teachers")}>
+          <Globe size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">{totalTeachers}</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Teachers</span>
+        </div>
+        <div className="bg-[#00bcd4] text-white p-5 rounded-md flex flex-col items-end justify-center cursor-pointer hover:opacity-90 transition-opacity shadow-sm relative overflow-hidden h-28" onClick={() => onNavigate("attendance")}>
+          <CalendarDays size={80} className="absolute -left-4 opacity-20 text-white" />
+          <span className="text-4xl font-light relative z-10">0</span>
+          <span className="text-sm mt-1 opacity-90 relative z-10 capitalize">Total Attendance</span>
         </div>
       </div>
 

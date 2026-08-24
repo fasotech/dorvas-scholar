@@ -140,7 +140,7 @@ export async function createRecord(platformUser: PlatformUser, section: Dashboar
     const recordPayload = { ...payload, status: payload.status || "active" };
     delete recordPayload.password; // Don't save plaintext password to the student record
     recordPayload.name = recordPayload.fullName;
-    
+    recordPayload.email = email;
     const doc = await model.create({
     status: payload.status || "active",
       ...recordPayload,

@@ -406,6 +406,7 @@ async function createRecord(platformUser, section, payload) {
     const recordPayload = { ...payload, status: payload.status || "active" };
     delete recordPayload.password;
     recordPayload.name = recordPayload.fullName;
+    recordPayload.email = email;
     const doc2 = await model.create({
       status: payload.status || "active",
       ...recordPayload,
