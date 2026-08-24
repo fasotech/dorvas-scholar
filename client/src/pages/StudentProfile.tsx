@@ -20,7 +20,13 @@ export default function StudentProfile({ params }: { params: { studentId: string
   const trpcContext = trpc.useContext();
   const query = trpc.school.getStudentProfile.useQuery({ id: params.studentId }, { retry: false });
   
-  const impersonate = trpc.auth.impersonate.useMutation();
+  const impersonate = trpc.auth.impersonate.useMutation({
+    onSuccess: (res: any) => {
+      if (res.token) sessionStorage.setItem("manus-cookie", `auth_token=${res.token}`);
+      window.location.href = "/dashboard";
+    },
+    onError: (err) => toast.error(err.message)
+  });
 
   const updateMutation = trpc.school.updateStudentProfile.useMutation({
     onSuccess: () => {
