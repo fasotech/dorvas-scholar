@@ -33,8 +33,8 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f4f6f4] p-4 font-sans">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
-        <div className="bg-[#125c3a] p-8 text-center">
-          <h1 className="text-3xl font-serif font-semibold text-white mb-2 tracking-tight">GREEN LEDGER</h1>
+        <div className="bg-[#125c3a] p-8 text-center flex flex-col items-center">
+          <img src="/greenledger-logo.png" alt="Green Ledger" className="h-12 w-auto bg-white p-2 rounded-xl mb-3 shadow-md" />
           <p className="text-[#a5cbb7] text-sm font-medium uppercase tracking-widest">Secure School Workspace</p>
         </div>
         <div className="p-8">

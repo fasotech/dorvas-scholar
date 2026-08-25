@@ -54,7 +54,7 @@ const roleCopy: Record<PortalRole, { eyebrow: string; greeting: string; descript
 };
 
 function LedgerMark() {
-  return <div className="brand-lockup" aria-label="Green Ledger"><span className="brand-mark"><img src="/manus-storage/green-ledger-mark_48929d3e.png" alt="" /></span><span className="wordmark"><b>GREEN</b><i>LEDGER</i></span></div>;
+  return <div className="brand-lockup" aria-label="Green Ledger"><img src="/greenledger-logo.png" alt="Green Ledger" className="h-8 w-auto bg-white p-1 rounded" /></div>;
 }
 
 function NavList({ items, active, onNavigate }: { items: NavItem[]; active: SectionKey; onNavigate: (key: SectionKey) => void }) {

@@ -10,11 +10,8 @@ export default function Landing() {
     <div className="min-h-screen flex flex-col font-sans bg-white selection:bg-[#125c3a] selection:text-white overflow-x-hidden">
       {/* Navigation */}
       <header className="w-full bg-white px-8 py-4 flex justify-between items-center sticky top-0 z-50 border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#125c3a] flex items-center justify-center text-white font-bold text-xl">
-            G
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">Green Ledger</h1>
+        <div className="flex items-center">
+          <img src="/greenledger-logo.png" alt="Green Ledger" className="h-8 w-auto" />
         </div>
         
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
@@ -49,10 +46,6 @@ export default function Landing() {
       <main className="flex-1 flex flex-col items-center">
         <section className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e8f3e9] text-[#176b4d] font-semibold text-xs mb-6 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-[#176b4d] animate-pulse"></span>
-              The Definitive Tech Ecosystem
-            </div>
             <h1 className="text-5xl md:text-6xl font-bold text-[#1a202c] leading-[1.1] mb-6 font-serif">
               Modern digital solutions designed for <span className="text-[#176b4d]">Your Success</span>
             </h1>
@@ -202,9 +195,8 @@ export default function Landing() {
       <footer className="w-full bg-[#0a1128] text-white pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded bg-white text-[#0a1128] flex items-center justify-center font-bold text-xl">G</div>
-              <span className="text-xl font-bold tracking-tight">Green Ledger</span>
+            <div className="mb-4 bg-white p-2 rounded inline-block">
+              <img src="/greenledger-logo.png" alt="Green Ledger" className="h-6 w-auto" />
             </div>
             <p className="text-gray-400 text-sm max-w-sm mb-6">
               The premium ecosystem for education, professional marketers, and businesses. Bringing Springdrill and Sovira together.

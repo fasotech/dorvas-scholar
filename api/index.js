@@ -448,7 +448,7 @@ var init_school2 = __esm({
       return value;
     };
     recordDefinitions = {
-      students: { columns: ["Student", "Admission no.", "Status", "Created"], model: Student, fields: ["fullName", "admissionNumber", "status", "createdAt"] },
+      students: { columns: ["Photo", "Student", "Admission no.", "Status", "Created"], model: Student, fields: ["profilePicture", "fullName", "admissionNumber", "status", "createdAt"] },
       teachers: { columns: ["Teacher", "Status", "Created"], model: Teacher, fields: ["fullName", "status", "createdAt"] },
       classes: { columns: ["Class", "Code", "Level", "Status"], model: SchoolClass, fields: ["name", "code", "gradeLevel", "status"] },
       attendance: { columns: ["Student", "Date", "Status", "Period"], model: Attendance, fields: ["studentId", "date", "status", "periodKey"] },
@@ -527,6 +527,12 @@ async function getStudentProfile(platformUser, studentId) {
     attendanceStats.totalPercentage = Math.round((attendanceStats.present + attendanceStats.late) / total * 100);
   }
   const auditLogs = await AuditLog.find({ targetId: studentId }).sort({ createdAt: -1 }).limit(20).lean();
+  const schoolUser = await SchoolUser.findOne({ profileId: studentId, isDeleted: { $ne: true } }).lean();
+  if (schoolUser && schoolUser.email && !student.email) {
+    student.email = schoolUser.email;
+  } else if (schoolUser && schoolUser.email && student.email !== schoolUser.email) {
+    student.email = schoolUser.email;
+  }
   return {
     student,
     attendanceStats,
