@@ -59,7 +59,7 @@ export default function Contact() {
                   <div>
                     <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</p>
                     <p className="text-lg font-medium text-gray-900">
-                      Port Harcourt, Nigeria
+                      Georgewill/Clifford Plaza Choba Junction, Port Harcourt, Rivers State, Nigeria.
                     </p>
                   </div>
                 </div>
@@ -67,25 +67,26 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Contact Form placeholder */}
+          {/* Contact Form */}
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h3>
-            <form className="space-y-4" onSubmit={e => e.preventDefault()}>
+            <form action="https://formsubmit.co/microsoftportharcourt@gmail.com" method="POST" className="space-y-4">
+              <input type="hidden" name="_subject" value="New Contact Form Submission - Green Ledger" />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="John Doe" />
+                <input type="text" name="name" required className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="John Doe" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <input type="email" className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="john@example.com" />
+                <input type="email" name="email" required className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="john@example.com" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input type="text" className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="How can we help?" />
+                <input type="text" name="subject" required className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="How can we help?" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea rows={5} className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="Write your message here..."></textarea>
+                <textarea name="message" required rows={5} className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#176b4d] outline-none" placeholder="Write your message here..."></textarea>
               </div>
               <button type="submit" className="w-full bg-[#176b4d] hover:bg-[#115a40] text-white rounded-lg px-8 py-4 font-bold transition-all">
                 Send Message

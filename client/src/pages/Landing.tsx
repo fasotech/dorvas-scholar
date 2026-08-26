@@ -21,14 +21,16 @@ export default function Landing() {
             Unlock your potential with cutting-edge software solutions. Whether you need a robust school ERP, advanced AI deployment, or a custom web platform—we have a modular solution for every need.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <Link href="/login">
+            <Link href="/deploy">
               <Button className="bg-[#176b4d] hover:bg-[#115a40] text-white rounded-full px-8 py-6 text-base shadow-lg transition-all flex items-center gap-2">
-                Get Started <ArrowRight size={18} />
+                Sign Up and Deploy <ArrowRight size={18} />
               </Button>
             </Link>
-            <Button variant="outline" className="rounded-full px-8 py-6 text-base text-gray-700 border-gray-300 hover:bg-gray-50">
-              Request a Demo
-            </Button>
+            <Link href="/contact">
+              <Button variant="outline" className="rounded-full px-8 py-6 text-base text-gray-700 border-gray-300 hover:bg-gray-50">
+                Request a Demo
+              </Button>
+            </Link>
           </div>
           
           <div className="mt-10 flex items-center gap-6 text-sm font-medium text-gray-500">
@@ -92,9 +94,9 @@ export default function Landing() {
                 <span className="text-sm font-medium flex items-center gap-2"><CheckCircle2 size={14} className="text-[#176b4d]"/> CBT Examination Engine</span>
                 <span className="text-sm font-medium flex items-center gap-2"><CheckCircle2 size={14} className="text-[#176b4d]"/> Automated Grading & Reports</span>
               </div>
-              <Link href="/login">
-                <span className="text-[#176b4d] font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">Launch Springdrill <ArrowRight size={16}/></span>
-              </Link>
+              <a href="https://springdrill-portal.vercel.app" target="_blank" rel="noreferrer" className="text-[#176b4d] font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                Launch Springdrill <ArrowRight size={16}/>
+              </a>
             </div>
 
             {/* Sovira */}

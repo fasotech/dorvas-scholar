@@ -17,11 +17,13 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Pricing from "./pages/Pricing";
+import Deploy from "./pages/Deploy";
 
 function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/deploy" component={Deploy} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/about" component={About} />
       <Route path="/careers" component={Careers} />

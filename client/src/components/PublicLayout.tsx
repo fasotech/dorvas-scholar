@@ -38,7 +38,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Log in
             </button>
           </Link>
-          <Link href="/login">
+          <Link href="/deploy">
             <Button className="bg-[#176b4d] hover:bg-[#115a40] text-white rounded-full px-6 shadow-md transition-all">
               Sign Up
             </Button>
@@ -67,9 +67,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div>
             <h4 className="font-bold mb-4">Products</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/login" className="hover:text-white transition-colors">Springdrill Portal</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">CBT Application</Link></li>
-              <li><a href="https://www.sovira.com.ng/" className="hover:text-white transition-colors">Sovira AI</a></li>
+              <li><Link href="/login" className="hover:text-white transition-colors">Green Ledger Portal</Link></li>
+              <li><a href="https://springdrill-portal.vercel.app" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Springdrill</a></li>
+              <li><a href="https://www.sovira.com.ng/" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Sovira AI</a></li>
               <li><a href="https://miacertificate.vercel.app" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">MIA Exam Portal</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Web Development</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Games</a></li>
@@ -83,14 +83,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">Free Tools</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Data Analyzer</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">AI Text Humanizer</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">InstantSite</a></li>
             </ul>
           </div>
         </div>
