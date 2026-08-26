@@ -1,8 +1,13 @@
 import { Link } from "wouter";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white selection:bg-[#125c3a] selection:text-white overflow-x-hidden">
       {/* Navigation */}
@@ -20,7 +25,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="group relative cursor-pointer flex items-center gap-1 hover:text-[#125c3a]">
             Industries Served <ChevronDown size={14} />
           </div>
-          <a href="#" className="hover:text-[#125c3a]">Pricing</a>
+          <Link href="/pricing" className="hover:text-[#125c3a]">Pricing</Link>
           <a href="#" className="hover:text-[#125c3a]">Resources</a>
           <div className="group relative cursor-pointer flex items-center gap-1 hover:text-[#125c3a]">
             Company <ChevronDown size={14} />
