@@ -11,10 +11,21 @@ import Landing from "./pages/Landing";
 import StudentProfile from "./pages/StudentProfile";
 import TeacherProfile from "./pages/TeacherProfile";
 
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+
 function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/about" component={About} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Home} />
       <Route path="/students/:studentId" component={StudentProfile} />
