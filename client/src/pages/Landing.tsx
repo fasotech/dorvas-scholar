@@ -13,8 +13,11 @@ export default function Landing() {
       {/* Section 1 - Hero */}
       <section className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
         <div className="max-w-2xl">
+          <p className="text-sm md:text-base font-bold text-[#176b4d] uppercase tracking-[0.15em] mb-4">
+            For Schools, Hospitals, NGOs & Government
+          </p>
           <h1 className="text-5xl md:text-6xl font-bold text-[#1a202c] leading-[1.1] mb-6 font-serif tracking-tight">
-            Your School, Hospital, or Agency Deserves Software That Doesn't Break Under Pressure.
+            Software That Doesn't Break Under Pressure.
           </h1>
           <p className="text-lg text-gray-600 mb-8 leading-relaxed">
             GreenLedger unites Springdrill and Sovira's engineering teams to deliver school ERPs, AI systems, and custom platforms — built fast, built right, and built to scale with you.
@@ -79,51 +82,85 @@ export default function Landing() {
             <p className="text-gray-600 max-w-2xl text-lg">Modular architecture built for operational speed and real-world impact.</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-[#e8f3e9] text-[#176b4d] rounded-xl flex items-center justify-center mb-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-[#E6F4EC] text-[#0F7A4D] rounded-full flex items-center justify-center mb-6">
                 <GraduationCap size={24} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">School Portal</h3>
               <p className="text-gray-500 text-sm mb-4 italic">"Manual attendance, lost fee records, parents calling the office every week."</p>
-              <p className="text-gray-700">A school management system that handles fees, attendance, results and parent communication — so your staff stop doing the same admin task three times a day.</p>
+              <p className="text-gray-700 leading-relaxed">A school management system that handles fees, attendance, results and parent communication — so your staff stop doing the same admin task three times a day.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-[#e8f3e9] text-[#125c3a] rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-[#E6F4EC] text-[#0F7A4D] rounded-full flex items-center justify-center mb-6">
                 <Bot size={24} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Sovira AI</h3>
               <p className="text-gray-500 text-sm mb-4 italic">"Everyone's talking about AI. Few schools or businesses are actually using it to save time."</p>
-              <p className="text-gray-700">AI tools built for real operations — content generation, data analysis, and automation — not a chatbot bolted onto a website for show.</p>
+              <p className="text-gray-700 leading-relaxed">AI tools built for real operations — content generation, data analysis, and automation — not a chatbot bolted onto a website for show.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-[#e8f3e9] text-teal-600 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-[#E6F4EC] text-[#0F7A4D] rounded-full flex items-center justify-center mb-6">
                 <MonitorPlay size={24} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">CBT Engine</h3>
               <p className="text-gray-500 text-sm mb-4 italic">"Paper exams are slow to grade and easy to leak. Manual result processing takes days."</p>
-              <p className="text-gray-700">Computer-based testing built for schools and training centers — instant grading, exam security, and results your students can trust.</p>
+              <p className="text-gray-700 leading-relaxed">Computer-based testing built for schools and training centers — instant grading, exam security, and results your students can trust.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all lg:col-span-1 md:col-span-2 lg:col-start-1">
-              <div className="w-12 h-12 bg-[#e8f3e9] text-[#7dcb71] rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 lg:col-span-1 md:col-span-2 lg:col-start-1">
+              <div className="w-14 h-14 bg-[#E6F4EC] text-[#0F7A4D] rounded-full flex items-center justify-center mb-6">
                 <Code size={24} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Web Dev</h3>
               <p className="text-gray-500 text-sm mb-4 italic">"Most agencies hand you a template and disappear after launch."</p>
-              <p className="text-gray-700">Custom-built websites and platforms — from static business sites to full applications — with a team that stays reachable after the invoice is paid.</p>
+              <p className="text-gray-700 leading-relaxed">Custom-built websites and platforms — from static business sites to full applications — with a team that stays reachable after the invoice is paid.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all lg:col-span-1 md:col-span-1">
-              <div className="w-12 h-12 bg-[#e8f3e9] text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 lg:col-span-1 md:col-span-1">
+              <div className="w-14 h-14 bg-[#E6F4EC] text-[#0F7A4D] rounded-full flex items-center justify-center mb-6">
                 <Gamepad2 size={24} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Games</h3>
               <p className="text-gray-500 text-sm mb-4 italic">"Educational content that puts students to sleep instead of engaging them."</p>
-              <p className="text-gray-700">Interactive and educational game builds designed to make learning stick, not just tick a box.</p>
+              <p className="text-gray-700 leading-relaxed">Interactive and educational game builds designed to make learning stick, not just tick a box.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Client Showcase */}
+      <section className="w-full bg-white py-20 px-6 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-serif">Who We've Built For</h2>
+            <p className="text-gray-600 max-w-2xl text-lg mx-auto">Real projects, real teams, real results.</p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-8">
+            <div className="bg-[#f8fafc] rounded-2xl p-8 border border-gray-100 max-w-[280px] w-full flex flex-col items-center text-center hover:shadow-md transition-shadow">
+              <img src="/crescite.png" alt="Crescite Global Services" className="h-16 object-contain mb-6 mix-blend-multiply" />
+              <h3 className="font-bold text-gray-900 mb-2">Crescite Global</h3>
+              <p className="text-sm text-gray-600">"Full website rebuild, SEO overhaul, and blog system"</p>
+            </div>
+            <div className="bg-[#f8fafc] rounded-2xl p-8 border border-gray-100 max-w-[280px] w-full flex flex-col items-center text-center hover:shadow-md transition-shadow">
+              <img src="/lacfog.jpg" alt="Lacfog Academy" className="h-16 object-contain mb-6 mix-blend-multiply rounded-md" />
+              <h3 className="font-bold text-gray-900 mb-2">Lacfog Academy</h3>
+              <p className="text-sm text-gray-600">"Complete school management portal and automated result processing"</p>
+            </div>
+            <div className="bg-[#f8fafc] rounded-2xl p-8 border border-gray-100 max-w-[280px] w-full flex flex-col items-center text-center hover:shadow-md transition-shadow">
+              <img src="/enet.png" alt="E-Net Supreme Academy" className="h-16 object-contain mb-6 mix-blend-multiply" />
+              <h3 className="font-bold text-gray-900 mb-2">E-Net Supreme</h3>
+              <p className="text-sm text-gray-600">"Custom CBT examination engine and student performance tracking"</p>
+            </div>
+            <div className="bg-[#f8fafc] rounded-2xl p-8 border border-gray-100 max-w-[280px] w-full flex flex-col items-center text-center hover:shadow-md transition-shadow">
+              <img src="/sovira.png" alt="Sovira AI" className="h-16 object-contain mb-6 mix-blend-multiply" />
+              <h3 className="font-bold text-gray-900 mb-2">Sovira</h3>
+              <p className="text-sm text-gray-600">"AI-driven semantic search engine and content generation platform"</p>
+            </div>
+            {/* TODO: add client card when available */}
           </div>
         </div>
       </section>
@@ -190,12 +227,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Placeholder */}
-      <section className="w-full py-16 px-6 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto">
-          {/* TODO: real client logos/testimonials go here */}
-        </div>
-      </section>
+
 
       {/* Section 6 - Final CTA / Request a Demo Form */}
       <section className="w-full bg-[#f8fafc] py-24 px-6 border-t border-gray-200">
