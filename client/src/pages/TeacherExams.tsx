@@ -3,6 +3,26 @@ import { trpc } from "../lib/trpc";
 import { Loader2, Plus, Edit, Trash, BookOpen, Clock, CheckCircle2, Circle, Copy, Download, Eye, ListFilter } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import ReactQuill, { Quill } from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import katex from "katex";
+import "katex/dist/katex.min.css";
+
+// Expose katex to window for Quill's formula module
+if (typeof window !== "undefined") {
+  (window as any).katex = katex;
+}
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'script': 'sub'}, { 'script': 'super' }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['link', 'image', 'video', 'formula'],
+    ['clean']
+  ]
+};
 
 export default function TeacherExams({ summary }: { summary: any }) {
   const [activeView, setActiveView] = useState<"list" | "create" | "edit">("list");
@@ -271,30 +291,13 @@ function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string) => vo
 
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-2">Instructions</label>
-          <div className="border border-gray-300 rounded overflow-hidden">
-            <div className="bg-gray-50 border-b p-2 flex gap-1 flex-wrap text-gray-600">
-              {/* Dummy WYSIWYG Toolbar */}
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs font-bold px-2">Format ▾</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs font-bold px-2">Size ▾</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs font-bold px-2">Font ▾</button>
-              <span className="border-r mx-1" />
-              <button type="button" className="p-1 hover:bg-gray-200 rounded font-bold">B</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded italic font-serif">I</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded underline">U</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs">A ▾</button>
-              <span className="border-r mx-1" />
-              <button type="button" className="p-1 hover:bg-gray-200 rounded">x₂</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded">x²</button>
-              <span className="border-r mx-1" />
-              <button type="button" className="p-1 hover:bg-gray-200 rounded">≡</button>
-              <span className="border-r mx-1" />
-              <button type="button" className="p-1 hover:bg-gray-200 rounded">¶</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs">img</button>
-              <button type="button" className="p-1 hover:bg-gray-200 rounded text-xs">Σ</button>
-            </div>
-            <textarea 
-              value={formData.instructions} onChange={e => setFormData({...formData, instructions: e.target.value})}
-              className="w-full p-3 min-h-[150px] focus:outline-none text-sm"
+          <div className="bg-white">
+            <ReactQuill
+              theme="snow"
+              value={formData.instructions}
+              onChange={(val) => setFormData({...formData, instructions: val})}
+              modules={quillModules}
+              className="min-h-[150px]"
               placeholder="Enter exam instructions, math formulas, or image references here..."
             />
           </div>
@@ -390,7 +393,7 @@ function ExamEditor({ examId, onBack }: { examId: string, onBack: () => void }) 
                 <tr key={q._id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 text-center align-top text-gray-500 font-bold">{i + 1}</td>
                   <td className="px-4 py-4">
-                    <div className="font-bold text-gray-800 mb-2">{q.questionText}</div>
+                    <div className="font-bold text-gray-800 mb-2" dangerouslySetInnerHTML={{ __html: q.questionText }}></div>
                     <div className="text-xs text-gray-500 mb-3">
                       <span className="text-[#125c3a] font-bold">ICT</span> <span className="text-gray-400">(Multiple Choice Single Answer)</span>
                     </div>
@@ -468,11 +471,16 @@ function AddQuestionForm({ examId, onAdded, defaultMarks }: { examId: string, on
   return (
     <form onSubmit={handleSubmit} className="border-2 border-dashed border-[#125c3a]/30 rounded p-6 bg-emerald-50/30 mt-8">
       <h4 className="font-bold text-[#125c3a] mb-4 flex items-center gap-2"><Plus size={18} /> Quick Add Question</h4>
-      <textarea 
-        value={qText} onChange={e => setQText(e.target.value)} required
-        placeholder="Type your question here..." 
-        className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-1 focus:ring-[#125c3a] min-h-[80px] text-sm"
-      />
+      <div className="mb-4 bg-white rounded">
+        <ReactQuill 
+          theme="snow"
+          value={qText} 
+          onChange={setQText} 
+          modules={quillModules}
+          placeholder="Type your question here (supports images and math formulas)..." 
+          className="min-h-[100px]"
+        />
+      </div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         {options.map((opt, i) => (
           <div key={i} className="flex items-center gap-3">
