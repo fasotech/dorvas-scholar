@@ -11,7 +11,7 @@ import AvatarUploader from "../components/AvatarUploader";
 import { useLocation } from "wouter";
 
 export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: any) => void }) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const utils = trpc.useContext();
   const query = trpc.studentPortal.getDashboardData.useQuery();
