@@ -11,7 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 import {
   AlertCircle, ArrowRight, ArrowUpRight, Award, Bell, BookOpen, CalendarDays, CheckCircle2, CircleDot,
-  ClipboardCheck, Download, Eye, EyeOff, GraduationCap, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageCircle,
+  ClipboardCheck, Download, Eye, EyeOff, FileText, GraduationCap, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageCircle,
   Plus, Search, School, Settings, SlidersHorizontal, Sparkles, Users, WalletCards, X, type LucideIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
