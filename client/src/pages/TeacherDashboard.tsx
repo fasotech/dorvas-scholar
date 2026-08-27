@@ -61,7 +61,7 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
           <AvatarUploader 
             id={summary?.identity?.profileId}
             type="Teacher"
-            currentPicture={user?.profilePicture || teacher?.profilePicture}
+            currentPicture={user?.profilePicture}
             initials={user?.displayName?.charAt(0) || "T"}
             size="md"
             editable={false}
