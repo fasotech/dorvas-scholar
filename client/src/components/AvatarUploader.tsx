@@ -21,9 +21,12 @@ export default function AvatarUploader({
   const [preview, setPreview] = useState(currentPicture);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const utils = trpc.useContext();
   const uploadMutation = trpc.school.updateProfilePicture.useMutation({
     onSuccess: () => {
       toast.success("Profile picture updated!");
+      utils.auth.me.invalidate();
+      utils.school.dashboard.invalidate();
     },
     onError: (err) => {
       toast.error(err.message);

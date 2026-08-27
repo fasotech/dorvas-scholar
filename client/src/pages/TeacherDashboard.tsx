@@ -64,6 +64,7 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
             currentPicture={user?.profilePicture}
             initials={user?.displayName?.charAt(0) || "T"}
             size="md"
+            editable={false}
           />
           <button onClick={openEditModal} className="p-2 text-gray-500 hover:text-blue-600 transition-colors" title="Edit Profile"><Edit size={20} /></button>
           <button onClick={() => void logout()} className="p-2 text-gray-500 hover:text-red-600 transition-colors" title="Logout">

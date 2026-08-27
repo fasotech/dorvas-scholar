@@ -103,6 +103,7 @@ export default function TeacherProfile() {
             currentPicture={teacher.profilePicture}
             initials={teacher.fullName.charAt(0)}
             size="xl"
+            editable={false}
           />
           
           <div className="flex-1">

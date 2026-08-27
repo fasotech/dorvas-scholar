@@ -55,9 +55,10 @@ export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: an
             <AvatarUploader 
               id={student._id}
               type="Student"
-              currentPicture={student.profilePicture || student.photograph}
+              currentPicture={user?.profilePicture || student.photograph}
               initials={student.fullName?.charAt(0) || "S"}
               size="xl"
+              editable={false}
             />
           </div>
           <div className="text-center md:text-left mt-4 md:mt-4">
@@ -215,11 +216,11 @@ export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: an
 
 function ActionBtn({ icon: Icon, label, color, bg, border, hover, onClick }: { icon: any, label: string, color: string, bg: string, border: string, hover: string, onClick?: () => void }) {
   return (
-    <div onClick={onClick} className={`flex flex-col items-center justify-center p-4 bg-white cursor-pointer transition-all duration-300 border ${border} rounded-xl shadow-sm text-center group hover:-translate-y-1 hover:shadow-md`}>
-      <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center mb-3 transition-colors ${hover.split(' ')[0]} ${color} group-hover:text-white`}>
-        <Icon size={22} />
+    <div onClick={onClick} className={`flex flex-col items-center justify-center p-4 md:p-5 bg-white cursor-pointer transition-all duration-300 border ${border} rounded-2xl shadow-sm text-center group hover:-translate-y-1 hover:shadow-lg`}>
+      <div className={`w-[76px] h-[76px] rounded-2xl ${bg} flex items-center justify-center mb-4 transition-all duration-300 ${hover.split(' ')[0]} ${color} group-hover:text-white shadow-inner bg-gradient-to-br from-white/40 to-transparent ring-1 ring-black/5`}>
+        <Icon size={44} strokeWidth={1.5} />
       </div>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-700 group-hover:text-gray-900">{label}</span>
+      <span className="text-xs md:text-sm font-bold tracking-wide text-gray-700 group-hover:text-gray-900">{label}</span>
     </div>
   );
 }
