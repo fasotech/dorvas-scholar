@@ -38,15 +38,16 @@ export const schoolRouter = router({
       if (!ctx.user) throw new Error("Auth failed");
       const { SchoolUser, Student, Teacher } = require("../models/school");
       
+      const identity = await require("../services/school").getSchoolIdentity(ctx.user as any);
+      if (identity.role !== 'admin' && identity.role !== 'administrator') {
+        throw new Error("Only administrators are allowed to update profile pictures at this time.");
+      }
+
       let targetProfileId = null;
       let targetType = null;
 
       if (input.id) {
         // Admin updating someone else
-        const identity = await require("../services/school").getSchoolIdentity(ctx.user as any);
-        if (identity.role !== 'admin' && identity.role !== 'administrator') {
-          throw new Error("Unauthorized to edit other profiles");
-        }
         targetProfileId = input.id;
         targetType = input.type || "Student"; // Default to student if not specified
       } else {
@@ -55,18 +56,27 @@ export const schoolRouter = router({
         if (!schoolUser) throw new Error("User not found");
         targetProfileId = schoolUser.profileId;
         targetType = schoolUser.profileType;
-        
-        // Also update the SchoolUser itself
-        schoolUser.profilePicture = input.base64Image;
-        await schoolUser.save();
       }
 
+      // 1. Update the Student/Teacher document
       if (targetType === "Student" || targetType === "student") {
         await Student.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
       } else if (targetType === "Teacher" || targetType === "teacher") {
         await Teacher.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
-      } else if (targetType === "Admin" || targetType === "admin") {
-         // Admins might not have a profile, just update the SchoolUser which we already did
+      }
+
+      // 2. Always update the linked SchoolUser so the login avatar is synced
+      if (targetProfileId) {
+        await SchoolUser.updateMany(
+          { profileId: targetProfileId },
+          { $set: { profilePicture: input.base64Image } }
+        );
+      } else if (!input.id) {
+        // Fallback: If no targetProfileId exists (e.g. they are an admin with no linked profile)
+        await SchoolUser.updateOne(
+          { email: ctx.user.email },
+          { $set: { profilePicture: input.base64Image } }
+        );
       }
       
       return { success: true };

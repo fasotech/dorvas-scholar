@@ -15,7 +15,7 @@ export default function AvatarUploader({
   type?: string, 
   currentPicture?: string, 
   initials: string,
-  size?: "sm" | "md" | "lg" | "xl",
+  size?: "sm" | "md" | "lg" | "xl" | "xxl",
   editable?: boolean
 }) {
   const [preview, setPreview] = useState(currentPicture);
@@ -56,7 +56,8 @@ export default function AvatarUploader({
     sm: "w-8 h-8 text-xs",
     md: "w-10 h-10 text-sm",
     lg: "w-16 h-16 text-xl",
-    xl: "w-24 h-24 text-3xl"
+    xl: "w-24 h-24 text-3xl",
+    xxl: "w-32 h-32 text-4xl"
   };
 
   return (

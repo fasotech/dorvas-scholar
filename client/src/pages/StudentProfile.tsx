@@ -172,14 +172,15 @@ export default function StudentProfile({ params }: { params: { studentId: string
 
       <main className="max-w-6xl mx-auto px-6 mt-8 print:hidden">
         <div className="flex flex-col md:flex-row gap-6 mb-8 items-start">
-          <div className="w-32 h-32 bg-gray-200 rounded-xl overflow-hidden shrink-0 border-4 border-white shadow-md">
-            {(student.profilePicture || student.photograph) ? (
-              <img src={student.profilePicture || student.photograph} alt="Student" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 font-serif text-3xl">
-                {student.fullName?.charAt(0) || "S"}
-              </div>
-            )}
+          <div className="shrink-0 relative group">
+            <AvatarUploader 
+              id={student._id}
+              type="Student"
+              currentPicture={student.profilePicture || student.photograph}
+              initials={student.fullName?.charAt(0) || "S"}
+              size="xxl"
+              editable={isAdmin}
+            />
           </div>
           
           <div className="flex-1">
