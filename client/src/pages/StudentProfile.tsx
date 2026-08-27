@@ -96,13 +96,19 @@ export default function StudentProfile({ params }: { params: { studentId: string
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editForm.password || editForm.confirmPassword) {
-      if (editForm.password !== editForm.confirmPassword) {
+    const payload = { ...editForm };
+    
+    if (payload.password || payload.confirmPassword) {
+      if (payload.password !== payload.confirmPassword) {
         toast.error("Passwords do not match");
         return;
       }
+    } else {
+      delete payload.password;
+      delete payload.confirmPassword;
     }
-    updateMutation.mutate({ id: student._id, updates: editForm });
+    
+    updateMutation.mutate({ id: student._id, updates: payload });
   };
 
   const openEditModal = () => {
@@ -119,8 +125,8 @@ export default function StudentProfile({ params }: { params: { studentId: string
       address: student.address || "",
       academicSession: student.academicSession || "",
       feeBalance: student.feeBalance || 0,
-      password: student.plainPassword || "",
-      confirmPassword: student.plainPassword || ""
+      password: "",
+      confirmPassword: ""
     });
 
     setIsEditModalOpen(true);
@@ -358,6 +364,51 @@ export default function StudentProfile({ params }: { params: { studentId: string
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Permanent Address</label>
                   <textarea className="w-full p-2 border rounded" rows={2} value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} />
+                </div>
+                
+                <div className="md:col-span-2 border-t pt-4 mt-2">
+                  <h3 className="text-sm font-bold text-gray-800 mb-3">Reset Student Password</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? 'text' : 'password'}
+                          className="w-full p-2 border rounded pr-10" 
+                          value={editForm.password || ""} 
+                          onChange={e => setEditForm({...editForm, password: e.target.value})}
+                          placeholder="Leave blank to keep current"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)} 
+                          className="absolute right-2 top-2.5 text-gray-500 hover:text-gray-700"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                      <div className="relative">
+                        <input 
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          className="w-full p-2 border rounded pr-10" 
+                          value={editForm.confirmPassword || ""} 
+                          onChange={e => setEditForm({...editForm, confirmPassword: e.target.value})}
+                          placeholder="Confirm new password"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                          className="absolute right-2 top-2.5 text-gray-500 hover:text-gray-700"
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 italic">Admins can reset the password for kids who forgot it.</p>
                 </div>
               </form>
             </div>
