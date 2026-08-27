@@ -1,4 +1,5 @@
 import { getStudentProfile, updateStudentProfile, toggleStudentStatus, deleteStudent } from "../services/studentProfile";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { router, publicProcedure } from "../_core/trpc";
 import { getDashboard, getRecords, createRecord, dashboardSections } from "../services/school";
@@ -94,6 +95,12 @@ export const schoolRouter = router({
       // Admins can edit any teacher, Teachers can edit themselves
       if (identity.role !== 'admin' && identity.role !== 'administrator' && identity.profileId !== input.id) {
         throw new Error("Unauthorized to edit this teacher");
+      }
+
+      if (input.updates.password) {
+        const hashedPassword = await bcrypt.hash(input.updates.password, 10);
+        await SchoolUser.updateMany({ profileId: input.id }, { $set: { password: hashedPassword, plainPassword: input.updates.password } });
+        delete input.updates.password;
       }
 
       const teacher = await Teacher.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });

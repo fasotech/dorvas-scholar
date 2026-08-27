@@ -12,12 +12,15 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
   
+  const utils = trpc.useContext();
   const query = trpc.school.getTeacherProfile.useQuery({ id: summary?.identity?.profileId }, { enabled: !!summary?.identity?.profileId });
   const updateMutation = trpc.school.updateTeacherProfile.useMutation({
     onSuccess: () => {
       toast.success("Profile updated!");
       setIsEditModalOpen(false);
       query.refetch();
+      utils.auth.me.invalidate();
+      utils.school.dashboard.invalidate();
     },
     onError: (err) => toast.error(err.message)
   });
@@ -164,6 +167,31 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
               </button>
             </div>
             <div className="p-6 flex-1 overflow-y-auto space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Profile Picture</label>
+                {editForm.profilePicture && (
+                  <img src={editForm.profilePicture} alt="Preview" className="w-20 h-20 object-cover rounded-full mb-2 border border-gray-200" />
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setEditForm(p => ({ ...p, profilePicture: reader.result as string }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full text-sm" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">New Password</label>
+                <input type="password" placeholder="Leave blank to keep current" onChange={e => setEditForm({...editForm, password: e.target.value})} className="w-full border rounded-md px-3 py-2 text-sm" />
+              </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
                 <input value={editForm.fullName || ''} onChange={e => setEditForm({...editForm, fullName: e.target.value})} className="w-full border rounded-md px-3 py-2 text-sm" />
