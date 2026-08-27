@@ -5,12 +5,14 @@ import { trpc } from "../lib/trpc";
 import { ArrowLeft, UserCircle, LogIn, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AvatarUploader from "../components/AvatarUploader";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 
 export default function TeacherProfile() {
   const { teacherId } = useParams();
   const [, setLocation] = useLocation();
-  
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
   
   const query = trpc.school.getTeacherProfile.useQuery(
     { id: teacherId! },
