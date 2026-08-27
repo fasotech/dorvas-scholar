@@ -143,5 +143,55 @@ export const schoolRouter = router({
       if (!ctx.user) throw new Error(`Auth failed! Cookies: ${JSON.stringify(ctx.req?.cookies)}, AuthHeader: ${ctx.req?.headers?.authorization}`);
       const user = ctx.user;
       return await createRecord({ openId: user.id || (user as any).openId || user.email, email: user.email, name: user.name }, input.section, input.payload);
+    }),
+
+  // CBT Endpoints
+  listCBTExams: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    const { CBTExam } = require("../models/school");
+    return await CBTExam.find({ isDeleted: false }).sort({ _id: -1 }).lean();
+  }),
+  createCBTExam: publicProcedure
+    .input(z.object({ title: z.string(), description: z.string().optional(), examType: z.string().optional(), subject: z.string().optional(), targetClass: z.string().optional(), durationMinutes: z.number().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTExam } = require("../models/school");
+      const identity = await require("../services/school").getSchoolIdentity(ctx.user as any);
+      const exam = new CBTExam({ ...input, createdBy: identity.profileId || ctx.user.id });
+      await exam.save();
+      return exam;
+    }),
+  getCBTExam: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { CBTExam, CBTQuestion } = require("../models/school");
+      const exam = await CBTExam.findById(input.id).lean();
+      const questions = await CBTQuestion.find({ examId: input.id, isDeleted: false }).lean();
+      return { exam, questions };
+    }),
+  addCBTQuestion: publicProcedure
+    .input(z.object({ examId: z.string(), questionText: z.string(), options: z.array(z.string()), correctOptionIndex: z.number(), marks: z.number().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTQuestion } = require("../models/school");
+      const q = new CBTQuestion(input);
+      await q.save();
+      return q;
+    }),
+  deleteCBTQuestion: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTQuestion } = require("../models/school");
+      await CBTQuestion.findByIdAndUpdate(input.id, { isDeleted: true });
+      return true;
+    }),
+  publishCBTExam: publicProcedure
+    .input(z.object({ id: z.string(), isPublished: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTExam } = require("../models/school");
+      await CBTExam.findByIdAndUpdate(input.id, { isPublished: input.isPublished });
+      return true;
     })
 });

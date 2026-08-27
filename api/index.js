@@ -596,6 +596,7 @@ async function deleteStudent(platformUser, studentId) {
 }
 
 // server/routers/school.ts
+import bcrypt3 from "bcryptjs";
 import { z } from "zod";
 init_school2();
 var schoolRouter = router({
@@ -662,6 +663,11 @@ var schoolRouter = router({
     if (identity.role !== "admin" && identity.role !== "administrator" && identity.profileId !== input.id) {
       throw new Error("Unauthorized to edit this teacher");
     }
+    if (input.updates.password) {
+      const hashedPassword = await bcrypt3.hash(input.updates.password, 10);
+      await SchoolUser2.updateMany({ profileId: input.id }, { $set: { password: hashedPassword, plainPassword: input.updates.password } });
+      delete input.updates.password;
+    }
     const teacher = await Teacher2.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });
     const schoolUserUpdates = {};
     if (input.updates.email) {
@@ -697,7 +703,7 @@ var schoolRouter = router({
 // server/routers/auth.ts
 import { z as z2 } from "zod";
 init_school();
-import bcrypt3 from "bcryptjs";
+import bcrypt4 from "bcryptjs";
 import jwt from "jsonwebtoken";
 var JWT_SECRET2 = process.env.JWT_SECRET || "default_unsafe_secret";
 var authRouter = router({
@@ -707,7 +713,7 @@ var authRouter = router({
   })).mutation(async ({ input, ctx }) => {
     let user = await SchoolUser.findOne({ email: input.email.toLowerCase(), isDeleted: { $ne: true }, isActive: { $ne: false } });
     if (!user && input.email.toLowerCase() === "adielasam2015@gmail.com") {
-      const hash = await bcrypt3.hash(input.password, 10);
+      const hash = await bcrypt4.hash(input.password, 10);
       user = await SchoolUser.create({
         email: "adielasam2015@gmail.com",
         displayName: "Super Admin",
@@ -724,11 +730,11 @@ var authRouter = router({
     if (!user.password) {
       if (input.password === "Admin123!") {
         isValid = true;
-        user.password = await bcrypt3.hash("Admin123!", 10);
+        user.password = await bcrypt4.hash("Admin123!", 10);
         await user.save();
       }
     } else {
-      isValid = await bcrypt3.compare(input.password, user.password);
+      isValid = await bcrypt4.compare(input.password, user.password);
     }
     if (!isValid) {
       throw new Error("Invalid email or password");
@@ -758,8 +764,8 @@ var authRouter = router({
       const { Teacher: Teacher2, Student: Student2 } = (init_school(), __toCommonJS(school_exports));
       const teacher = await Teacher2.findOne({ email: input.email });
       if (teacher) {
-        const bcrypt5 = __require("bcryptjs");
-        const hashedPassword = await bcrypt5.hash("Password123!", 10);
+        const bcrypt6 = __require("bcryptjs");
+        const hashedPassword = await bcrypt6.hash("Password123!", 10);
         targetUser = await SchoolUser.create({
           email: input.email.toLowerCase(),
           password: hashedPassword,
@@ -773,8 +779,8 @@ var authRouter = router({
       } else {
         const student = await Student2.findOne({ email: input.email });
         if (student) {
-          const bcrypt5 = __require("bcryptjs");
-          const hashedPassword = await bcrypt5.hash("Password123!", 10);
+          const bcrypt6 = __require("bcryptjs");
+          const hashedPassword = await bcrypt6.hash("Password123!", 10);
           targetUser = await SchoolUser.create({
             email: input.email.toLowerCase(),
             password: hashedPassword,
@@ -841,7 +847,7 @@ var authRouter = router({
 // server/routers/users.ts
 import { z as z3 } from "zod";
 init_school();
-import bcrypt4 from "bcryptjs";
+import bcrypt5 from "bcryptjs";
 var usersRouter = router({
   listUsers: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
@@ -863,7 +869,7 @@ var usersRouter = router({
     if (ctx.user?.role !== "admin") throw new Error("UNAUTHORIZED");
     const existingUser = await SchoolUser.findOne({ email: input.email.toLowerCase() });
     if (existingUser && !existingUser.isDeleted) throw new Error("Email already in use");
-    const hashedPassword = await bcrypt4.hash(input.password, 10);
+    const hashedPassword = await bcrypt5.hash(input.password, 10);
     let profileId = null;
     if (input.role === "student") {
       const student = await Student.create({ name: input.displayName });
