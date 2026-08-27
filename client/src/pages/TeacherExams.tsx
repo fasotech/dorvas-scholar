@@ -326,7 +326,7 @@ function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string) => vo
   );
 }
 
-function ExamEditor({ examId, onBack }: { examId: string, onBack: () => void }) {
+function ExamEditor({ examId, onBack, onContinue }: { examId: string, onBack: () => void, onContinue: () => void }) {
   const { data, isLoading, refetch } = trpc.school.getCBTExam.useQuery({ id: examId });
   const publishMutation = trpc.school.publishCBTExam.useMutation({
     onSuccess: () => { toast.success("Status updated!"); refetch(); },
