@@ -15,11 +15,14 @@ export const studentPortalRouter = router({
       $or: [
         { assignedStudents: student._id },
         { 
-          $or: [ { assignedStudents: { $exists: false } }, { assignedStudents: { $size: 0 } } ],
-          $or: [
-            { targetClass: student.className },
-            { targetClass: (student as any).class },
-            { targetClass: 'All' }
+          $and: [
+            { $or: [ { assignedStudents: { $exists: false } }, { assignedStudents: { $size: 0 } } ] },
+            { $or: [
+                { targetClass: student.className },
+                { targetClass: (student as any).class },
+                { targetClass: 'All' }
+              ] 
+            }
           ]
         }
       ]
