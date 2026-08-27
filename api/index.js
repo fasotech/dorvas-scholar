@@ -819,10 +819,20 @@ var authRouter = router({
   }),
   me: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.user) return null;
-    const { SchoolUser: SchoolUser2 } = (init_school(), __toCommonJS(school_exports));
+    const { SchoolUser: SchoolUser2, Student: Student2, Teacher: Teacher2 } = (init_school(), __toCommonJS(school_exports));
     const user = await SchoolUser2.findById(ctx.user.id).lean();
     if (user) {
-      return { ...ctx.user, profilePicture: user.profilePicture };
+      let picture = user.profilePicture;
+      if (!picture && user.profileId) {
+        if (user.profileType === "Student") {
+          const s = await Student2.findById(user.profileId).lean();
+          picture = s?.profilePicture || s?.photograph || null;
+        } else if (user.profileType === "Teacher") {
+          const t2 = await Teacher2.findById(user.profileId).lean();
+          picture = t2?.profilePicture || null;
+        }
+      }
+      return { ...ctx.user, profilePicture: picture };
     }
     return ctx.user;
   })

@@ -156,10 +156,22 @@ export const authRouter = router({
 
   me: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.user) return null;
-    const { SchoolUser } = require("../models/school");
+    const { SchoolUser, Student, Teacher } = require("../models/school");
     const user = await SchoolUser.findById(ctx.user.id).lean();
     if (user) {
-      return { ...ctx.user, profilePicture: user.profilePicture };
+      let picture = user.profilePicture;
+      
+      // Smart Fallback for older uploads
+      if (!picture && user.profileId) {
+        if (user.profileType === 'Student') {
+          const s = await Student.findById(user.profileId).lean();
+          picture = s?.profilePicture || s?.photograph || null;
+        } else if (user.profileType === 'Teacher') {
+          const t = await Teacher.findById(user.profileId).lean();
+          picture = t?.profilePicture || null;
+        }
+      }
+      return { ...ctx.user, profilePicture: picture };
     }
     return ctx.user;
   })
