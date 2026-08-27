@@ -203,7 +203,24 @@ export const schoolRouter = router({
       if (!ctx.user) throw new Error("Auth failed");
       const { CBTQuestion } = require("../models/school");
       await CBTQuestion.findByIdAndUpdate(input.id, { isDeleted: true });
-      return true;
+      return { success: true };
+    }),
+  assignStudentsToCBTExam: publicProcedure
+    .input(z.object({ examId: z.string(), studentIds: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTExam } = require("../models/school");
+      await CBTExam.findByIdAndUpdate(input.examId, { assignedStudents: input.studentIds });
+      return { success: true };
+    }),
+  getStudentsByClass: publicProcedure
+    .input(z.object({ className: z.string() }))
+    .query(async ({ input }) => {
+      const { Student } = require("../models/school");
+      return await Student.find({ 
+        $or: [{ class: input.className }, { className: input.className }], 
+        isDeleted: { $ne: true } 
+      }).lean();
     }),
   publishCBTExam: publicProcedure
     .input(z.object({ id: z.string(), isPublished: z.boolean() }))

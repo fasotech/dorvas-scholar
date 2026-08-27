@@ -13,8 +13,15 @@ export const studentPortalRouter = router({
       isPublished: true, 
       isDeleted: { $ne: true },
       $or: [
-        { targetClass: student.className },
-        { targetClass: 'All' }
+        { assignedStudents: student._id },
+        { 
+          $or: [ { assignedStudents: { $exists: false } }, { assignedStudents: { $size: 0 } } ],
+          $or: [
+            { targetClass: student.className },
+            { targetClass: (student as any).class },
+            { targetClass: 'All' }
+          ]
+        }
       ]
     }).lean();
 

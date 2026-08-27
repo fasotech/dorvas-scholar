@@ -202,6 +202,7 @@ var init_school = __esm({
       publishResultAutomatically: { type: Boolean, default: false },
       instructions: String,
       isPublished: { type: Boolean, default: false },
+      assignedStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
       createdBy: mongoose.Schema.Types.ObjectId,
       isDeleted: { type: Boolean, default: false }
     }, baseOptions);
@@ -760,7 +761,20 @@ var schoolRouter = router({
     if (!ctx.user) throw new Error("Auth failed");
     const { CBTQuestion: CBTQuestion2 } = (init_school(), __toCommonJS(school_exports));
     await CBTQuestion2.findByIdAndUpdate(input.id, { isDeleted: true });
-    return true;
+    return { success: true };
+  }),
+  assignStudentsToCBTExam: publicProcedure.input(z.object({ examId: z.string(), studentIds: z.array(z.string()) })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    const { CBTExam: CBTExam2 } = (init_school(), __toCommonJS(school_exports));
+    await CBTExam2.findByIdAndUpdate(input.examId, { assignedStudents: input.studentIds });
+    return { success: true };
+  }),
+  getStudentsByClass: publicProcedure.input(z.object({ className: z.string() })).query(async ({ input }) => {
+    const { Student: Student2 } = (init_school(), __toCommonJS(school_exports));
+    return await Student2.find({
+      $or: [{ class: input.className }, { className: input.className }],
+      isDeleted: { $ne: true }
+    }).lean();
   }),
   publishCBTExam: publicProcedure.input(z.object({ id: z.string(), isPublished: z.boolean() })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");
@@ -993,8 +1007,15 @@ var studentPortalRouter = router({
       isPublished: true,
       isDeleted: { $ne: true },
       $or: [
-        { targetClass: student.className },
-        { targetClass: "All" }
+        { assignedStudents: student._id },
+        {
+          $or: [{ assignedStudents: { $exists: false } }, { assignedStudents: { $size: 0 } }],
+          $or: [
+            { targetClass: student.className },
+            { targetClass: student.class },
+            { targetClass: "All" }
+          ]
+        }
       ]
     }).lean();
     const recentNotes = await ClassNote.find({

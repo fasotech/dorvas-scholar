@@ -25,73 +25,71 @@ const quillModules = {
 };
 
 export default function TeacherExams({ summary }: { summary: any }) {
-  const [activeView, setActiveView] = useState<"list" | "create" | "edit">("list");
+  const [activeView, setActiveView] = useState<"list" | "create" | "edit" | "assign">("list");
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
+  const [selectedExamClass, setSelectedExamClass] = useState<string>("YEAR 7 PRIMEROSE"); // Need to track class for assignment
 
-  const { data: exams, isLoading, refetch } = trpc.school.listCBTExams.useQuery();
+  const { data: exams, refetch } = trpc.school.listCBTExams.useQuery();
 
-  const handleCreated = (id: string) => {
+  const handleCreated = (id: string, targetClass: string) => {
     toast.success("Exam created successfully!");
     setSelectedExamId(id);
+    setSelectedExamClass(targetClass);
     setActiveView("edit"); // Move to add questions
     refetch();
   };
 
   return (
-    <div className="bg-[#f4f6f8] min-h-full font-sans">
-      <div className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm">
-        <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <BookOpen size={20} className="text-[#125c3a]" /> Manage CBT
-        </h1>
+    <div className="flex-1 bg-[#e0f2ec] overflow-auto">
+      <div className="bg-white border-b sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm">
+        <h1 className="text-xl font-bold text-emerald-900">Manage CBT</h1>
       </div>
-
+      
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         {activeView === "list" && (
           <>
             {/* Top Filter Panel */}
-            <div className="bg-white rounded border overflow-hidden">
-              <div className="bg-[#125c3a] text-white px-4 py-2 text-sm font-semibold flex items-center gap-2">
-                <ListFilter size={16} /> Test Manager
+            <div className="bg-white border rounded shadow-sm">
+              <div className="bg-[#125c3a] text-white p-2 text-sm font-bold flex items-center gap-2">
+                <Circle size={10} fill="white" /> Test Manager
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <div className="p-6 flex flex-col gap-4 max-w-2xl mx-auto">
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-600 w-24 text-right">Select School</label>
-                  <select className="flex-1 border p-2 text-sm rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Select School</label>
+                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>Spring Valley High School</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-600 w-24 text-right">Session</label>
-                  <select className="flex-1 border p-2 text-sm rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Session</label>
+                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>2025/2026</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-600 w-24 text-right">Test Type</label>
-                  <select className="flex-1 border p-2 text-sm rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Test Type</label>
+                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>Test/Assessment</option>
-                    <option>Exam</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-600 w-24 text-right">Class</label>
-                  <select className="flex-1 border p-2 text-sm rounded focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Class</label>
+                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>YEAR 7 PRIMEROSE</option>
                   </select>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-600 w-24 text-right">Subject</label>
-                  <select className="flex-1 border p-2 text-sm rounded focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Subject</label>
+                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>ICT</option>
-                    <option>Mathematics</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            {/* Test List Panel */}
-            <div className="bg-white rounded border overflow-hidden">
-              <div className="bg-[#125c3a] text-white px-4 py-2 text-sm font-semibold flex items-center justify-between">
+            {/* List Panel */}
+            <div className="bg-white border rounded shadow-sm">
+              <div className="bg-[#125c3a] text-white p-2 text-sm font-bold flex items-center justify-between">
                 <span>Test List</span>
                 <div className="flex gap-2">
                   <button onClick={() => setActiveView("create")} className="bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded text-xs font-bold shadow-sm flex items-center gap-1">
@@ -102,58 +100,59 @@ export default function TeacherExams({ summary }: { summary: any }) {
                   </button>
                 </div>
               </div>
-              
-              <div className="p-4 border-b flex justify-between items-center text-sm">
-                <div>
-                  <select className="border p-1 rounded mr-2"><option>10</option></select> records
+              <div className="p-3 border-b flex justify-between items-center bg-gray-50">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <select className="border border-gray-300 rounded p-1"><option>10</option></select> records
                 </div>
-                <div>
-                  Search: <input className="border p-1 rounded ml-2 focus:outline-none focus:ring-1 focus:ring-[#125c3a]" />
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  Search: <input className="border border-gray-300 rounded p-1 w-48 focus:outline-none focus:ring-1 focus:ring-[#125c3a]" />
                 </div>
               </div>
 
-              {isLoading ? (
-                <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-gray-400" /></div>
-              ) : !exams?.length ? (
-                <div className="p-12 text-center text-gray-500">No exams created yet.</div>
+              {!exams || exams.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">No tests created yet. Click "New Test" to begin.</div>
               ) : (
-                <table className="w-full text-left text-sm">
-                  <thead className="text-gray-500 border-b">
-                    <tr>
-                      <th className="px-4 py-3 w-12 text-center">S/N</th>
-                      <th className="px-4 py-3">Test Information</th>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b text-xs text-gray-500">
+                      <th className="p-3 w-12 text-center font-bold">S/N</th>
+                      <th className="p-3 font-bold">Test Information</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {exams.map((exam: any, idx: number) => (
-                      <tr key={exam._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-4 text-center text-gray-500">{idx + 1}</td>
-                        <td className="px-4 py-4">
+                  <tbody>
+                    {exams.map((exam: any, i: number) => (
+                      <tr key={exam._id} className="border-b hover:bg-gray-50">
+                        <td className="p-4 text-center align-top text-gray-500 font-bold">{i + 1}</td>
+                        <td className="p-4">
                           <div className="flex justify-between items-start">
                             <div>
-                              <div className="font-bold text-[#125c3a] text-base mb-1">{exam.title} <span className="text-gray-400 text-sm font-normal">({exam.targetClass})</span></div>
-                              <div className="text-xs text-gray-600 mb-2 flex items-center gap-4">
-                                <span>Duration (mins): {exam.durationMinutes + (exam.durationHours * 60)}</span>
-                                <span>Total Ques: 40</span>
-                                <span>Total Mrks: 20</span>
+                              <div className="text-[#125c3a] font-bold text-lg mb-1">{exam.title} <span className="text-gray-500 font-medium text-sm ml-2">{exam.targetClass}</span></div>
+                              <div className="flex gap-4 text-xs text-gray-500 font-medium mb-2">
+                                <span className="flex items-center gap-1 bg-gray-200 px-2 py-0.5 rounded"><Clock size={12}/> Duration (mins): {exam.durationHours * 60 + exam.durationMinutes}</span>
+                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Total Qs.: {exam.questionCount || 0}</span>
+                                <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Total Mrks.: {(exam.questionCount || 0) * exam.marksPerQuestion}</span>
                               </div>
-                              <div className="flex gap-2">
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">{exam.marksPerQuestion || 1} mrk(s)/que</span>
-                                {exam.isPublished ? (
-                                  <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs">Published</span>
-                                ) : (
-                                  <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs">Draft</span>
-                                )}
+                              <div className="flex gap-2 mb-2">
+                                <span className={`text-xs px-2 py-0.5 rounded font-bold ${exam.isPublished ? 'bg-blue-500 text-white' : 'bg-amber-400 text-amber-900'}`}>{exam.isPublished ? 'Published' : 'Not Published'}</span>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="flex flex-col items-end gap-2">
                               <div className="text-xs text-gray-500 mb-2 font-medium">
                                 {exam.startAt ? new Date(exam.startAt).toLocaleString() : 'Not set'} - {exam.endAt ? new Date(exam.endAt).toLocaleString() : 'Not set'}
                               </div>
                               <div className="flex gap-1 justify-end">
                                 <button className="text-xs border text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Download size={12}/> Download</button>
                                 <button className="text-xs border text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Eye size={12}/> Preview</button>
-                                <button onClick={() => { setSelectedExamId(exam._id); setActiveView("edit"); }} className="text-xs border text-purple-600 hover:bg-purple-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Edit size={12}/> Edit</button>
+                                <button onClick={() => { 
+                                  setSelectedExamId(exam._id); 
+                                  setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
+                                  setActiveView("edit"); 
+                                }} className="text-xs border text-purple-600 hover:bg-purple-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Edit size={12}/> Edit</button>
+                                <button onClick={() => { 
+                                  setSelectedExamId(exam._id); 
+                                  setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
+                                  setActiveView("assign"); 
+                                }} className="text-xs border text-teal-600 hover:bg-teal-50 px-2 py-1 rounded font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Assign</button>
                                 <button className="text-xs border text-red-600 hover:bg-red-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Trash size={12}/> Delete</button>
                               </div>
                             </div>
@@ -173,7 +172,19 @@ export default function TeacherExams({ summary }: { summary: any }) {
         )}
 
         {activeView === "edit" && (
-          <ExamEditor examId={selectedExamId!} onBack={() => { setActiveView("list"); refetch(); }} />
+          <ExamEditor 
+            examId={selectedExamId!} 
+            onBack={() => { setActiveView("list"); refetch(); }} 
+            onContinue={() => setActiveView("assign")} 
+          />
+        )}
+        
+        {activeView === "assign" && (
+          <AssignStudents 
+            examId={selectedExamId!} 
+            targetClass={selectedExamClass}
+            onBack={() => { setActiveView("list"); refetch(); }} 
+          />
         )}
       </div>
     </div>
@@ -427,7 +438,102 @@ function ExamEditor({ examId, onBack }: { examId: string, onBack: () => void }) 
           <div className="flex-1" />
           <button className="px-6 py-2 bg-[#2d7a9f] hover:bg-[#1f5b7a] text-white rounded shadow-sm font-bold text-sm">UPDATE</button>
           <button className="px-6 py-2 bg-[#4cc36b] hover:bg-[#3ba355] text-white rounded shadow-sm font-bold text-sm">ADD QUESTIONS</button>
-          <button onClick={() => publishMutation.mutate({ id: examId, isPublished: true })} className="px-6 py-2 bg-[#4bc0c0] hover:bg-[#3a9c9c] text-white rounded shadow-sm font-bold text-sm">Continue</button>
+          <button onClick={onContinue} className="px-6 py-2 bg-[#4bc0c0] hover:bg-[#3a9c9c] text-white rounded shadow-sm font-bold text-sm">Continue</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBack: () => void, targetClass: string }) {
+  const { data: students, isLoading } = trpc.school.getStudentsByClass.useQuery({ className: targetClass });
+  const { data: examData } = trpc.school.getCBTExam.useQuery({ id: examId });
+  const assignMut = trpc.school.assignStudentsToCBTExam.useMutation({
+    onSuccess: () => {
+      toast.success("Students assigned successfully!");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Initialize selected from DB
+  if (examData?.exam && selectedIds.size === 0 && students && assignMut.isIdle) {
+    const assigned = (examData.exam as any).assignedStudents || [];
+    if (assigned.length > 0) {
+      const s = new Set<string>();
+      assigned.forEach((id: any) => s.add(id.toString()));
+      setSelectedIds(s);
+    } else {
+      // Default all
+      const s = new Set<string>();
+      students.forEach(st => s.add(st._id));
+      setSelectedIds(s);
+    }
+  }
+
+  const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const s = new Set<string>();
+      students?.forEach(st => s.add(st._id));
+      setSelectedIds(s);
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleUpdate = () => {
+    assignMut.mutate({ examId, studentIds: Array.from(selectedIds) });
+  };
+
+  if (isLoading) return <div className="p-8 text-center"><Loader2 className="animate-spin inline" /></div>;
+
+  return (
+    <div className="bg-white border rounded">
+      <div className="bg-[#125c3a] text-white font-bold p-3 text-sm flex gap-8">
+        <span>TEST / ASSIGNMENT DETAILS</span>
+        <span>ASSIGN QUESTIONS</span>
+        <span className="border-b-2 border-white pb-1">STUDENTS</span>
+      </div>
+      <div className="bg-emerald-50 text-emerald-800 font-bold text-center text-sm p-2 border-b">
+        Total Assigned: <span className="bg-white text-emerald-800 px-2 py-0.5 rounded">{selectedIds.size}</span> Current Class Total: <span className="bg-white text-emerald-800 px-2 py-0.5 rounded">{students?.length || 0}</span>
+      </div>
+      
+      <div className="p-4">
+        <table className="w-full border-collapse border border-gray-200">
+          <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase">
+            <tr>
+              <th className="p-3 w-10 text-center"><input type="checkbox" onChange={toggleAll} checked={students?.length! > 0 && selectedIds.size === students?.length} /></th>
+              <th className="p-3 w-16 text-center border-l">#</th>
+              <th className="p-3 text-left border-l">Student Name</th>
+              <th className="p-3 text-left border-l w-48">Student Class</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {students?.map((s, i) => (
+              <tr key={s._id} className="border-b hover:bg-gray-50">
+                <td className="p-3 text-center"><input type="checkbox" checked={selectedIds.has(s._id)} onChange={() => toggleOne(s._id)} /></td>
+                <td className="p-3 text-center text-gray-500 border-l">{i + 1}</td>
+                <td className="p-3 font-medium text-gray-800 border-l uppercase">{s.firstName} {s.lastName}</td>
+                <td className="p-3 text-gray-600 border-l uppercase">{s.class}</td>
+              </tr>
+            ))}
+            {students?.length === 0 && <tr><td colSpan={4} className="p-4 text-center text-gray-500">No students found in this class.</td></tr>}
+          </tbody>
+        </table>
+        
+        <div className="mt-4 flex justify-between">
+          <button onClick={onBack} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2 rounded shadow-sm text-sm">Go Back</button>
+          <button onClick={handleUpdate} disabled={assignMut.isPending} className="bg-[#125c3a] hover:bg-[#0e482d] text-white font-bold px-6 py-2 rounded shadow-sm text-sm">
+            {assignMut.isPending ? "Updating..." : "Update"}
+          </button>
         </div>
       </div>
     </div>

@@ -170,6 +170,7 @@ const cbtExamSchema = new mongoose.Schema({
   publishResultAutomatically: { type: Boolean, default: false },
   instructions: String,
   isPublished: { type: Boolean, default: false },
+  assignedStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
   createdBy: mongoose.Schema.Types.ObjectId,
   isDeleted: { type: Boolean, default: false }
 }, baseOptions);
