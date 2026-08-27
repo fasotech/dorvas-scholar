@@ -3,8 +3,8 @@ import { trpc } from "../lib/trpc";
 import { Loader2, Plus, Edit, Trash, BookOpen, Clock, CheckCircle2, Circle, Copy, Download, Eye, ListFilter } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import ReactQuill, { Quill } from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
