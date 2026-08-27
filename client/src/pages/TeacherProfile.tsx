@@ -64,7 +64,7 @@ export default function TeacherProfile() {
 
   const handleImpersonate = () => {
     if (!teacher.email) {
-      toast.error("Teacher has no email to impersonate.");
+      toast.error("Teacher has no email to login with.");
       return;
     }
     const toastId = toast.loading("Switching context...");
@@ -119,7 +119,7 @@ export default function TeacherProfile() {
             <div className="flex flex-wrap gap-3">
               <Button size="sm" className="text-xs h-8 bg-[#1b4332] hover:bg-[#2d6a4f]" onClick={handleImpersonate} disabled={!teacher.email || impersonate.isPending}>
                 {impersonate.isPending ? <Loader2 size={14} className="animate-spin mr-1" /> : <LogIn size={14} className="mr-1" />} 
-                Impersonate Teacher
+                Login As Teacher
               </Button>
             </div>
           </div>

@@ -201,7 +201,7 @@ export default function StudentProfile({ params }: { params: { studentId: string
                 <Button size="sm" variant="outline" className="text-xs h-8" onClick={openEditModal}><Edit size={14} className="mr-1" /> Edit</Button>
                 <Button size="sm" variant="outline" className="text-xs h-8" onClick={handlePrintId}><FileText size={14} className="mr-1" /> Print ID</Button>
                 <Button size="sm" variant="outline" className="text-xs h-8" onClick={handleExport}><Download size={14} className="mr-1" /> Export</Button>
-                <Button size="sm" variant="outline" className="text-xs h-8" onClick={handleImpersonate} disabled={!student.email}><LogIn size={14} className="mr-1" /> Impersonate</Button>
+                <Button size="sm" variant="outline" className="text-xs h-8" onClick={handleImpersonate} disabled={!student.email}><LogIn size={14} className="mr-1" /> Login As Student</Button>
                 <Button size="sm" variant="outline" className={`text-xs h-8 ${isActive ? 'text-red-600 border-red-200 hover:bg-red-50' : 'text-green-600 border-green-200 hover:bg-green-50'}`} onClick={handleDeactivate}>
                   {isActive ? <XCircle size={14} className="mr-1" /> : <CheckCircle2 size={14} className="mr-1" />}
                   {isActive ? 'Deactivate' : 'Activate'}

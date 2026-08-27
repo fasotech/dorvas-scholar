@@ -367,7 +367,7 @@ function UserManagement() {
                 <td className="px-6 py-4">{u.email}</td>
                 <td className="px-6 py-4"><span className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-semibold uppercase">{u.role}</span></td>
                 <td className="px-6 py-4">
-                  <button onClick={() => impersonateMutation.mutate({ email: u.email })} className="text-blue-500 hover:text-blue-700 text-sm font-medium mr-4">Impersonate</button>
+                  <button onClick={() => impersonateMutation.mutate({ email: u.email })} className="text-blue-500 hover:text-blue-700 text-sm font-medium mr-4">Login As User</button>
 <button onClick={() => {
                     if(confirm("Are you sure?")) deleteMutation.mutate({ id: u.id });
                   }} className="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
