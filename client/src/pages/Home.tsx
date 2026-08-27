@@ -19,7 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 type PortalRole = "Administrator" | "Teacher" | "Student" | "Parent";
-type SectionKey = "overview" | "students" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users" | "pastoral" | "feedback" | "eclassroom" | "library" | "lessonPlanner" | "cbt" | "voting" | "timetable" | "pocketMoney" | "rateTeachers" | "medical" | "remarks";
+type SectionKey = "overview" | "students" | "teachers" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users" | "pastoral" | "feedback" | "eclassroom" | "library" | "lessonPlanner" | "cbt" | "voting" | "timetable" | "pocketMoney" | "rateTeachers" | "medical" | "remarks";
 type ProtectedSection = Exclude<SectionKey, "overview" | "users">;
 type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
 

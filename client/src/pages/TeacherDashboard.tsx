@@ -7,7 +7,7 @@ import { useState } from "react";
 import { trpc } from "../lib/trpc";
 import { toast } from "sonner";
 
-export default function TeacherDashboard({ summary, onNavigate }: { summary: any, onNavigate: (s: string) => void }) {
+export default function TeacherDashboard({ summary, onNavigate }: { summary: any, onNavigate: (s: any) => void }) {
   const { user, logout } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
