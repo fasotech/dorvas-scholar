@@ -208,7 +208,14 @@ var init_school = __esm({
     }, baseOptions);
     CBTExam = mongoose.models.CBTExam || mongoose.model("CBTExam", cbtExamSchema);
     cbtQuestionSchema = new mongoose.Schema({
-      examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam", required: true },
+      examId: { type: mongoose.Schema.Types.ObjectId, ref: "CBTExam" },
+      // optional
+      targetClass: String,
+      subject: String,
+      topic: String,
+      difficulty: { type: String, default: "EASY" },
+      tags: [String],
+      questionType: { type: String, default: "Multiple Choice Single Answer" },
       questionText: { type: String, required: true },
       options: [{ type: String, required: true }],
       correctOptionIndex: { type: Number, required: true },
@@ -762,6 +769,34 @@ var schoolRouter = router({
     const { CBTQuestion: CBTQuestion2 } = (init_school(), __toCommonJS(school_exports));
     await CBTQuestion2.findByIdAndUpdate(input.id, { isDeleted: true });
     return { success: true };
+  }),
+  listBankQuestions: publicProcedure.input(z.object({ targetClass: z.string().optional(), subject: z.string().optional() })).query(async ({ input }) => {
+    const { CBTQuestion: CBTQuestion2 } = (init_school(), __toCommonJS(school_exports));
+    const q = { examId: { $exists: false }, isDeleted: false };
+    if (input.targetClass && input.targetClass !== "All") q.targetClass = input.targetClass;
+    if (input.subject && input.subject !== "All") q.subject = input.subject;
+    return await CBTQuestion2.find(q).lean();
+  }),
+  createBankQuestion: publicProcedure.input(z.object({ targetClass: z.string(), subject: z.string(), topic: z.string().optional(), difficulty: z.string().optional(), questionText: z.string(), options: z.array(z.string()), correctOptionIndex: z.number(), tags: z.array(z.string()).optional() })).mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new Error("Auth failed");
+    const { CBTQuestion: CBTQuestion2 } = (init_school(), __toCommonJS(school_exports));
+    const q = new CBTQuestion2(input);
+    await q.save();
+    return q;
+  }),
+  getExamResultStats: publicProcedure.query(async () => {
+    const { CBTExam: CBTExam2, CBTAttempt: CBTAttempt2 } = (init_school(), __toCommonJS(school_exports));
+    const exams = await CBTExam2.find({ isDeleted: { $ne: true } }).lean();
+    const stats = await Promise.all(exams.map(async (exam) => {
+      const attempts = await CBTAttempt2.find({ examId: exam._id }).lean();
+      const totalCompleted = attempts.filter((a) => a.status === "completed").length;
+      return {
+        ...exam,
+        totalAttempt: attempts.length,
+        totalCompleted
+      };
+    }));
+    return stats;
   }),
   assignStudentsToCBTExam: publicProcedure.input(z.object({ examId: z.string(), studentIds: z.array(z.string()) })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");

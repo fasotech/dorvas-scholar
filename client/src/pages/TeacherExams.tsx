@@ -42,7 +42,7 @@ export default function TeacherExams({ summary }: { summary: any }) {
   return (
     <div className="flex-1 bg-[#e0f2ec] overflow-auto">
       <div className="bg-white border-b sticky top-0 z-10 px-6 py-4 flex justify-between items-center shadow-sm">
-        <h1 className="text-xl font-bold text-emerald-900">Manage CBT</h1>
+        <h1 className="text-xl font-bold text-emerald-900">Home &middot; Cbt &middot; Manage CBT</h1>
       </div>
       
       <div className="p-6 max-w-6xl mx-auto space-y-6">

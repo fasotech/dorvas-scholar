@@ -205,6 +205,39 @@ export const schoolRouter = router({
       await CBTQuestion.findByIdAndUpdate(input.id, { isDeleted: true });
       return { success: true };
     }),
+  listBankQuestions: publicProcedure
+    .input(z.object({ targetClass: z.string().optional(), subject: z.string().optional() }))
+    .query(async ({ input }) => {
+      const { CBTQuestion } = require("../models/school");
+      const q: any = { examId: { $exists: false }, isDeleted: false };
+      if (input.targetClass && input.targetClass !== "All") q.targetClass = input.targetClass;
+      if (input.subject && input.subject !== "All") q.subject = input.subject;
+      return await CBTQuestion.find(q).lean();
+    }),
+  createBankQuestion: publicProcedure
+    .input(z.object({ targetClass: z.string(), subject: z.string(), topic: z.string().optional(), difficulty: z.string().optional(), questionText: z.string(), options: z.array(z.string()), correctOptionIndex: z.number(), tags: z.array(z.string()).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      const { CBTQuestion } = require("../models/school");
+      const q = new CBTQuestion(input);
+      await q.save();
+      return q;
+    }),
+  getExamResultStats: publicProcedure
+    .query(async () => {
+      const { CBTExam, CBTAttempt } = require("../models/school");
+      const exams = await CBTExam.find({ isDeleted: { $ne: true } }).lean();
+      const stats = await Promise.all(exams.map(async (exam: any) => {
+        const attempts = await CBTAttempt.find({ examId: exam._id }).lean();
+        const totalCompleted = attempts.filter((a: any) => a.status === 'completed').length;
+        return {
+          ...exam,
+          totalAttempt: attempts.length,
+          totalCompleted
+        };
+      }));
+      return stats;
+    }),
   assignStudentsToCBTExam: publicProcedure
     .input(z.object({ examId: z.string(), studentIds: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {

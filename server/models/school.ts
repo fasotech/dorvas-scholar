@@ -177,7 +177,13 @@ const cbtExamSchema = new mongoose.Schema({
 export const CBTExam = mongoose.models.CBTExam || mongoose.model('CBTExam', cbtExamSchema);
 
 const cbtQuestionSchema = new mongoose.Schema({
-  examId: { type: mongoose.Schema.Types.ObjectId, ref: 'CBTExam', required: true },
+  examId: { type: mongoose.Schema.Types.ObjectId, ref: 'CBTExam' }, // optional
+  targetClass: String,
+  subject: String,
+  topic: String,
+  difficulty: { type: String, default: 'EASY' },
+  tags: [String],
+  questionType: { type: String, default: 'Multiple Choice Single Answer' },
   questionText: { type: String, required: true },
   options: [{ type: String, required: true }],
   correctOptionIndex: { type: Number, required: true },

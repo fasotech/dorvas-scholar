@@ -19,15 +19,41 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 type PortalRole = "Administrator" | "Teacher" | "Student" | "Parent";
-type SectionKey = "overview" | "students" | "teachers" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users" | "pastoral" | "feedback" | "eclassroom" | "library" | "lessonPlanner" | "cbt" | "voting" | "timetable" | "pocketMoney" | "rateTeachers" | "medical" | "remarks";
+type SectionKey = "overview" | "students" | "teachers" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users" | "pastoral" | "feedback" | "eclassroom" | "library" | "lessonPlanner" | "cbt" | "cbt_question_bank" | "cbt_manage" | "cbt_results" | "voting" | "timetable" | "pocketMoney" | "rateTeachers" | "medical" | "remarks" | "hrm" | "report" | "behaviour" | "photos";
 type ProtectedSection = Exclude<SectionKey, "overview" | "users">;
-type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
+type NavItem = { label: string; key: SectionKey; icon: LucideIcon; subItems?: {label: string, key: SectionKey}[] };
 
 const primaryNav: NavItem[] = [
-  { label: "Dashboard", key: "overview", icon: LayoutDashboard }, { label: "Students", key: "students", icon: Users },
+  { label: "Dashboard", key: "overview", icon: LayoutDashboard },
+  { label: "Students", key: "students", icon: Users },
   { label: "Teachers", key: "teachers", icon: Users },
-  { label: "Classes & subjects", key: "classes", icon: School }, { label: "Attendance", key: "attendance", icon: ClipboardCheck },
-  { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
+  { label: "Classes & subjects", key: "classes", icon: School },
+  { label: "Attendance", key: "attendance", icon: ClipboardCheck },
+  { label: "Exams & practice", key: "exams", icon: BookOpen },
+  { label: "Results", key: "results", icon: Award },
+  { label: "Fees & payments", key: "fees", icon: WalletCards },
+];
+
+const teacherNav: NavItem[] = [
+  { label: "Dashboard", key: "overview", icon: LayoutDashboard },
+  { label: "Pastoral", key: "pastoral", icon: Users },
+  { label: "My HRM Info", key: "hrm", icon: Users },
+  { label: "Feedback", key: "feedback", icon: MessageCircle },
+  { label: "eClassroom", key: "eclassroom", icon: BookOpen },
+  { label: "High School Report", key: "report", icon: FileText },
+  { label: "Subjects", key: "classes", icon: School },
+  { label: "Lesson Planner", key: "lessonPlanner", icon: CalendarDays },
+  { label: "CBT", key: "cbt", icon: CheckCircle2, subItems: [
+    { label: "Question Bank", key: "cbt_question_bank" },
+    { label: "Manage CBT", key: "cbt_manage" },
+    { label: "Result Manager", key: "cbt_results" }
+  ]},
+  { label: "TimeTable", key: "timetable", icon: CalendarDays },
+  { label: "BehaviourTracker", key: "behaviour", icon: Users },
+  { label: "Calendar", key: "calendar", icon: CalendarDays },
+  { label: "Class Attendance", key: "attendance", icon: ClipboardCheck },
+  { label: "Photo Journals", key: "photos", icon: BookOpen },
+  { label: "Weekly Remarks", key: "remarks", icon: FileText }
 ];
 
 const studentNav: NavItem[] = [
@@ -87,7 +113,46 @@ function LedgerMark() {
 }
 
 function NavList({ items, active, onNavigate }: { items: NavItem[]; active: SectionKey; onNavigate: (key: SectionKey) => void }) {
-  return <nav className="nav-list" aria-label="Portal navigation">{items.map((item) => { const Icon = item.icon; return <button key={item.key} className={`nav-item ${active === item.key ? "is-active" : ""}`} onClick={() => onNavigate(item.key)}><Icon size={18} strokeWidth={active === item.key ? 2.4 : 1.8} /><span>{item.label}</span></button>; })}</nav>;
+  const [expanded, setExpanded] = useState<string[]>([]);
+  return <nav className="nav-list" aria-label="Portal navigation">{items.map((item) => { 
+    const Icon = item.icon; 
+    const isActive = active === item.key || item.subItems?.some(sub => sub.key === active);
+    const isExpanded = expanded.includes(item.key);
+
+    return (
+      <div key={item.key}>
+        <button 
+          className={`nav-item ${isActive ? "is-active" : ""}`} 
+          onClick={() => {
+            if (item.subItems) {
+              setExpanded(prev => prev.includes(item.key) ? prev.filter(k => k !== item.key) : [...prev, item.key]);
+            } else {
+              onNavigate(item.key);
+            }
+          }}
+        >
+          <Icon size={18} strokeWidth={isActive ? 2.4 : 1.8} />
+          <span>{item.label}</span>
+          {item.subItems && (
+            <svg className={`ml-auto w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          )}
+        </button>
+        {item.subItems && isExpanded && (
+          <div className="pl-8 flex flex-col mt-1 space-y-1">
+            {item.subItems.map(sub => (
+              <button 
+                key={sub.key} 
+                onClick={() => onNavigate(sub.key)}
+                className={`text-left text-sm py-1.5 px-3 rounded ${active === sub.key ? "text-[#125c3a] font-bold bg-[#e0f2ec]" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                {sub.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    ); 
+  })}</nav>;
 }
 
 function ProgressRing({ value, label }: { value: number; label: string }) {
@@ -266,6 +331,8 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
 
 import AdminDashboard from "./AdminDashboard";
 import TeacherExams from "./TeacherExams";
+import QuestionBank from "./QuestionBank";
+import ResultManager from "./ResultManager";
 
 function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
   if (role === "Student") return <StudentDashboard onNavigate={onNavigate} />;
@@ -334,6 +401,9 @@ export default function Home() {
     if (active === "overview") return <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} />;
     if (active === "users") return <UserManagement />;
     if (active === "exams" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data} />;
+    if (active === "cbt_manage" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data} />;
+    if (active === "cbt_question_bank" && role === "Teacher") return <QuestionBank />;
+    if (active === "cbt_results" && role === "Teacher") return <ResultManager />;
     return <Workspace section={active as any} onCreate={() => setCreateOpen(true)} />;
   };
 
