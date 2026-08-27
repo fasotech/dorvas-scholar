@@ -1,5 +1,6 @@
 import { Student, Attendance, ExamResult, Fee, Document, Homework, AuditLog, SchoolUser } from "../models/school";
 import { getSchoolIdentity, PlatformUser } from "./school";
+import bcrypt from "bcryptjs";
 
 export async function getStudentProfile(platformUser: PlatformUser, studentId: string) {
   const identity = await getSchoolIdentity(platformUser);
@@ -87,7 +88,6 @@ export async function updateStudentProfile(platformUser: PlatformUser, studentId
   if (role !== 'admin' && role !== 'administrator') throw new Error('Unauthorized: Only admins can edit profiles');
 
   if (updates.password) {
-    const bcrypt = require("bcryptjs");
     const hashedPassword = await bcrypt.hash(updates.password, 10);
     await SchoolUser.updateMany({ profileId: studentId }, { $set: { password: hashedPassword, plainPassword: updates.password } });
     delete updates.password; // Don't save plaintext to Student record
