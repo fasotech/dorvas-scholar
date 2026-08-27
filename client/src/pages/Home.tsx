@@ -30,7 +30,7 @@ const primaryNav: NavItem[] = [
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
 ];
 const secondaryNav: NavItem[] = [
-  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
+  { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
 ];
 
 const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; description: string; primary: string }> = {
@@ -238,7 +238,7 @@ function CreatePanel({ section, label, onClose }: { section: string; label: stri
 import AdminDashboard from "./AdminDashboard";
 
 function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
-  if (role === "Student") return <StudentDashboard />;
+  if (role === "Student") return <StudentDashboard onNavigate={onNavigate} />;
   if (role === "Teacher") return <TeacherDashboard summary={summary} onNavigate={onNavigate} />;
   
   if (isLoading) {
@@ -294,8 +294,8 @@ export default function Home() {
   if (!isAuthenticated) return <SignInGate />;
   const schoolRole = dashboardQuery.data?.identity.role;
   const role: PortalRole = schoolRole === "teacher" ? "Teacher" : schoolRole === "student" ? "Student" : schoolRole === "parent" ? "Parent" : "Administrator";
-  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : primaryNav.filter((item) => item.key === "overview");
-  const permittedSecondary = role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key !== "settings");
+  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : primaryNav.filter((item) => item.key === "overview" || item.key === "classes" || item.key === "attendance" || item.key === "exams" || item.key === "results");
+  const permittedSecondary = role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key === "announcements" || item.key === "calendar");
   const initials = (dashboardQuery.data?.identity.displayName ?? user?.name ?? "GL").split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase();
   const createLabel = active === "overview" ? roleCopy[role].action : active === "users" ? "New User" : (moduleData as any)[active]?.primary;
   const navigate = (key: SectionKey) => { setActive(key); setMobileNavOpen(false); };
