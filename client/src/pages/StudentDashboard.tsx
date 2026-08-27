@@ -55,7 +55,7 @@ export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: an
             <AvatarUploader 
               id={student._id}
               type="Student"
-              currentPicture={user?.profilePicture || student.photograph}
+              currentPicture={user?.profilePicture || student.profilePicture || student.photograph}
               initials={student.fullName?.charAt(0) || "S"}
               size="xl"
               editable={false}

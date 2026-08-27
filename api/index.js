@@ -560,8 +560,15 @@ async function updateStudentProfile(platformUser, studentId, updates) {
     delete updates.password;
   }
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
+  const schoolUserUpdates = {};
   if (updates.email) {
-    await SchoolUser.updateMany({ profileId: studentId }, { $set: { email: updates.email.toLowerCase() } });
+    schoolUserUpdates.email = updates.email.toLowerCase();
+  }
+  if (updates.profilePicture) {
+    schoolUserUpdates.profilePicture = updates.profilePicture;
+  }
+  if (Object.keys(schoolUserUpdates).length > 0) {
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: schoolUserUpdates });
   }
   if (identity.schoolUserId) {
     await logAdminAction(identity.schoolUserId, studentId, "Updated Profile", JSON.stringify(updates));
@@ -615,13 +622,13 @@ var schoolRouter = router({
   updateProfilePicture: publicProcedure.input(z.object({ id: z.string().optional(), base64Image: z.string(), type: z.string().optional() })).mutation(async ({ ctx, input }) => {
     if (!ctx.user) throw new Error("Auth failed");
     const { SchoolUser: SchoolUser2, Student: Student2, Teacher: Teacher2 } = (init_school(), __toCommonJS(school_exports));
+    const identity = await (init_school2(), __toCommonJS(school_exports2)).getSchoolIdentity(ctx.user);
+    if (identity.role !== "admin" && identity.role !== "administrator") {
+      throw new Error("Only administrators are allowed to update profile pictures at this time.");
+    }
     let targetProfileId = null;
     let targetType = null;
     if (input.id) {
-      const identity = await (init_school2(), __toCommonJS(school_exports2)).getSchoolIdentity(ctx.user);
-      if (identity.role !== "admin" && identity.role !== "administrator") {
-        throw new Error("Unauthorized to edit other profiles");
-      }
       targetProfileId = input.id;
       targetType = input.type || "Student";
     } else {
@@ -629,14 +636,22 @@ var schoolRouter = router({
       if (!schoolUser) throw new Error("User not found");
       targetProfileId = schoolUser.profileId;
       targetType = schoolUser.profileType;
-      schoolUser.profilePicture = input.base64Image;
-      await schoolUser.save();
     }
     if (targetType === "Student" || targetType === "student") {
       await Student2.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
     } else if (targetType === "Teacher" || targetType === "teacher") {
       await Teacher2.findByIdAndUpdate(targetProfileId, { profilePicture: input.base64Image });
-    } else if (targetType === "Admin" || targetType === "admin") {
+    }
+    if (targetProfileId) {
+      await SchoolUser2.updateMany(
+        { profileId: targetProfileId },
+        { $set: { profilePicture: input.base64Image } }
+      );
+    } else if (!input.id) {
+      await SchoolUser2.updateOne(
+        { email: ctx.user.email },
+        { $set: { profilePicture: input.base64Image } }
+      );
     }
     return { success: true };
   }),
@@ -648,8 +663,15 @@ var schoolRouter = router({
       throw new Error("Unauthorized to edit this teacher");
     }
     const teacher = await Teacher2.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });
+    const schoolUserUpdates = {};
     if (input.updates.email) {
-      await SchoolUser2.updateMany({ profileId: input.id }, { $set: { email: input.updates.email.toLowerCase() } });
+      schoolUserUpdates.email = input.updates.email.toLowerCase();
+    }
+    if (input.updates.profilePicture) {
+      schoolUserUpdates.profilePicture = input.updates.profilePicture;
+    }
+    if (Object.keys(schoolUserUpdates).length > 0) {
+      await SchoolUser2.updateMany({ profileId: input.id }, { $set: schoolUserUpdates });
     }
     return teacher;
   }),

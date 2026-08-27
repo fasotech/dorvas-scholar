@@ -95,9 +95,16 @@ export async function updateStudentProfile(platformUser: PlatformUser, studentId
 
   const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true });
   
-  // Keep the login account email in sync if it changed
+  // Keep the login account email and profile picture in sync if they changed
+  const schoolUserUpdates: any = {};
   if (updates.email) {
-    await SchoolUser.updateMany({ profileId: studentId }, { $set: { email: updates.email.toLowerCase() } });
+    schoolUserUpdates.email = updates.email.toLowerCase();
+  }
+  if (updates.profilePicture) {
+    schoolUserUpdates.profilePicture = updates.profilePicture;
+  }
+  if (Object.keys(schoolUserUpdates).length > 0) {
+    await SchoolUser.updateMany({ profileId: studentId }, { $set: schoolUserUpdates });
   }
 
   if (identity.schoolUserId) {

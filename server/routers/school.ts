@@ -98,8 +98,15 @@ export const schoolRouter = router({
 
       const teacher = await Teacher.findByIdAndUpdate(input.id, { $set: input.updates }, { new: true });
       
+      const schoolUserUpdates: any = {};
       if (input.updates.email) {
-        await SchoolUser.updateMany({ profileId: input.id }, { $set: { email: input.updates.email.toLowerCase() } });
+        schoolUserUpdates.email = input.updates.email.toLowerCase();
+      }
+      if (input.updates.profilePicture) {
+        schoolUserUpdates.profilePicture = input.updates.profilePicture;
+      }
+      if (Object.keys(schoolUserUpdates).length > 0) {
+        await SchoolUser.updateMany({ profileId: input.id }, { $set: schoolUserUpdates });
       }
 
       return teacher;
