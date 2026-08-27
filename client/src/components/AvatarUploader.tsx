@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { trpc } from "../lib/trpc";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,8 +18,13 @@ export default function AvatarUploader({
   size?: "sm" | "md" | "lg" | "xl" | "xxl",
   editable?: boolean
 }) {
-  const [preview, setPreview] = useState(currentPicture);
+  const isValid = (p?: string) => p && p.trim().length > 5 ? p : undefined;
+  const [preview, setPreview] = useState(isValid(currentPicture));
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    setPreview(isValid(currentPicture));
+  }, [currentPicture]);
   
   const utils = trpc.useContext();
   const uploadMutation = trpc.school.updateProfilePicture.useMutation({

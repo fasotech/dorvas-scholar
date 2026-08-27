@@ -24,7 +24,7 @@ type ProtectedSection = Exclude<SectionKey, "overview" | "users">;
 type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
 
 const primaryNav: NavItem[] = [
-  { label: "Overview", key: "overview", icon: LayoutDashboard }, { label: "Students", key: "students", icon: Users },
+  { label: "Dashboard", key: "overview", icon: LayoutDashboard }, { label: "Students", key: "students", icon: Users },
   { label: "Teachers", key: "teachers", icon: Users },
   { label: "Classes & subjects", key: "classes", icon: School }, { label: "Attendance", key: "attendance", icon: ClipboardCheck },
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
