@@ -19,7 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 type PortalRole = "Administrator" | "Teacher" | "Student" | "Parent";
-type SectionKey = "overview" | "students" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users";
+type SectionKey = "overview" | "students" | "classes" | "attendance" | "exams" | "results" | "fees" | "announcements" | "calendar" | "settings" | "users" | "pastoral" | "feedback" | "eclassroom" | "library" | "lessonPlanner" | "cbt" | "voting" | "timetable" | "pocketMoney" | "rateTeachers" | "medical" | "remarks";
 type ProtectedSection = Exclude<SectionKey, "overview" | "users">;
 type NavItem = { label: string; key: SectionKey; icon: LucideIcon };
 
@@ -29,6 +29,23 @@ const primaryNav: NavItem[] = [
   { label: "Classes & subjects", key: "classes", icon: School }, { label: "Attendance", key: "attendance", icon: ClipboardCheck },
   { label: "Exams & practice", key: "exams", icon: BookOpen }, { label: "Results", key: "results", icon: Award }, { label: "Fees & payments", key: "fees", icon: WalletCards },
 ];
+
+const studentNav: NavItem[] = [
+  { label: "Dashboard", key: "overview", icon: LayoutDashboard },
+  { label: "Pastoral", key: "pastoral", icon: Users },
+  { label: "Feedback", key: "feedback", icon: MessageCircle },
+  { label: "eClassroom", key: "eclassroom", icon: BookOpen },
+  { label: "Subjects", key: "classes", icon: School },
+  { label: "Assignments", key: "exams", icon: FileText },
+  { label: "Library", key: "library", icon: BookOpen },
+  { label: "Lesson Planner", key: "lessonPlanner", icon: CalendarDays },
+  { label: "Cbt", key: "cbt", icon: CheckCircle2 },
+  { label: "Voting System", key: "voting", icon: Users },
+  { label: "TimeTable", key: "timetable", icon: CalendarDays },
+  { label: "Calendar", key: "calendar", icon: CalendarDays },
+  { label: "PocketMoney Manager", key: "pocketMoney", icon: WalletCards },
+];
+
 const secondaryNav: NavItem[] = [
   { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
 ];
@@ -44,6 +61,18 @@ const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; des
   calendar: { eyebrow: "School rhythm", title: "The term at a glance, then in detail.", description: "Upcoming scheduled assessments and school dates load from the secure timetable data.", primary: "Add calendar event" },
   settings: { eyebrow: "School settings", title: "Keep the foundation orderly.", description: "Academic sessions and protected school configuration are reserved for administrators.", primary: "Update settings" },
   teachers: { eyebrow: "Teacher roster", title: "Manage teaching staff.", description: "Review and manage the teacher roster and subjects.", primary: "New Teacher" },
+  pastoral: { eyebrow: "Pastoral", title: "Pastoral care & well-being", description: "View your pastoral records.", primary: "Request Support" },
+  feedback: { eyebrow: "Feedback", title: "Provide feedback", description: "Your voice matters.", primary: "New Feedback" },
+  eclassroom: { eyebrow: "eClassroom", title: "Digital learning space", description: "Access virtual classes and materials.", primary: "Join Class" },
+  library: { eyebrow: "Library", title: "School Library", description: "Browse digital resources and books.", primary: "Reserve Book" },
+  lessonPlanner: { eyebrow: "Lesson Planner", title: "Your learning path", description: "View your upcoming lessons.", primary: "View Planner" },
+  cbt: { eyebrow: "CBT", title: "Computer Based Testing", description: "Take your active assessments here.", primary: "Start Exam" },
+  voting: { eyebrow: "Voting System", title: "School Elections", description: "Participate in student elections.", primary: "Vote Now" },
+  timetable: { eyebrow: "TimeTable", title: "Your Schedule", description: "View your weekly timetable.", primary: "Download" },
+  pocketMoney: { eyebrow: "PocketMoney Manager", title: "Manage your funds", description: "Track your pocket money spending.", primary: "Add Funds" },
+  rateTeachers: { eyebrow: "Rate Teachers", title: "Teacher Evaluation", description: "Provide constructive feedback for your teachers.", primary: "Start Evaluation" },
+  medical: { eyebrow: "Medical Records", title: "Health & Wellbeing", description: "Your medical history and current health status.", primary: "Update Record" },
+  remarks: { eyebrow: "Teacher Remarks", title: "Termly Remarks", description: "Comments and behavior reports from your teachers.", primary: "View Remarks" }
 };
 
 const roleCopy: Record<PortalRole, { eyebrow: string; greeting: string; description: string; action: string }> = {
@@ -294,8 +323,8 @@ export default function Home() {
   if (!isAuthenticated) return <SignInGate />;
   const schoolRole = dashboardQuery.data?.identity.role;
   const role: PortalRole = schoolRole === "teacher" ? "Teacher" : schoolRole === "student" ? "Student" : schoolRole === "parent" ? "Parent" : "Administrator";
-  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : primaryNav.filter((item) => item.key === "overview" || item.key === "classes" || item.key === "attendance" || item.key === "exams" || item.key === "results");
-  const permittedSecondary = role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key === "announcements" || item.key === "calendar");
+  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : role === "Student" ? studentNav : primaryNav.filter((item) => item.key === "overview");
+  const permittedSecondary = role === "Student" ? [] : role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key === "announcements" || item.key === "calendar");
   const initials = (dashboardQuery.data?.identity.displayName ?? user?.name ?? "GL").split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase();
   const createLabel = active === "overview" ? roleCopy[role].action : active === "users" ? "New User" : (moduleData as any)[active]?.primary;
   const navigate = (key: SectionKey) => { setActive(key); setMobileNavOpen(false); };

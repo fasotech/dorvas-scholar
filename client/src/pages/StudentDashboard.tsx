@@ -78,10 +78,10 @@ export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: st
         <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 grid grid-cols-3 md:grid-cols-6 gap-4 border border-gray-100">
           <ActionBtn onClick={() => onNavigate?.("classes")} icon={BookOpen} label="Subjects" color="text-blue-600" bg="bg-blue-50" border="border-blue-100" hover="hover:bg-blue-600 hover:text-white" />
           <ActionBtn onClick={() => onNavigate?.("exams")} icon={FileText} label="Assignments" color="text-amber-600" bg="bg-amber-50" border="border-amber-100" hover="hover:bg-amber-600 hover:text-white" />
-          <ActionBtn onClick={() => onNavigate?.("exams")} icon={CheckSquare} label="CBT Exams" color="text-rose-600" bg="bg-rose-50" border="border-rose-100" hover="hover:bg-rose-600 hover:text-white" />
-          <ActionBtn onClick={() => alert("Coming soon")} icon={PlayCircle} label="eClassroom" color="text-emerald-600" bg="bg-emerald-50" border="border-emerald-100" hover="hover:bg-emerald-600 hover:text-white" />
-          <ActionBtn onClick={() => alert("Coming soon")} icon={BookOpen} label="Library" color="text-purple-600" bg="bg-purple-50" border="border-purple-100" hover="hover:bg-purple-600 hover:text-white" />
-          <ActionBtn onClick={() => alert("Coming soon")} icon={Sparkles} label="Rate Teachers" color="text-indigo-600" bg="bg-indigo-50" border="border-indigo-100" hover="hover:bg-indigo-600 hover:text-white" />
+          <ActionBtn onClick={() => onNavigate?.("cbt")} icon={CheckSquare} label="CBT" color="text-rose-600" bg="bg-rose-50" border="border-rose-100" hover="hover:bg-rose-600 hover:text-white" />
+          <ActionBtn onClick={() => onNavigate?.("eclassroom")} icon={PlayCircle} label="eClassroom" color="text-emerald-600" bg="bg-emerald-50" border="border-emerald-100" hover="hover:bg-emerald-600 hover:text-white" />
+          <ActionBtn onClick={() => onNavigate?.("rateTeachers")} icon={Sparkles} label="Rate Teachers" color="text-indigo-600" bg="bg-indigo-50" border="border-indigo-100" hover="hover:bg-indigo-600 hover:text-white" />
+          <ActionBtn onClick={() => onNavigate?.("calendar")} icon={CalendarDays} label="Calendar" color="text-purple-600" bg="bg-purple-50" border="border-purple-100" hover="hover:bg-purple-600 hover:text-white" />
         </div>
       </div>
 
@@ -93,8 +93,8 @@ export default function StudentDashboard({ onNavigate }: { onNavigate?: (key: st
               <span onClick={() => onNavigate?.("overview")} className="text-[#1b4332] border-b-2 border-[#1b4332] pb-4 -mb-4 transition-colors cursor-pointer">Overview</span>
               <span onClick={() => onNavigate?.("attendance")} className="hover:text-gray-900 transition-colors cursor-pointer">Attendance</span>
               <span onClick={() => onNavigate?.("results")} className="hover:text-gray-900 transition-colors cursor-pointer">Result</span>
-              <span onClick={() => alert("Coming soon")} className="hover:text-gray-900 transition-colors cursor-pointer">Medical</span>
-              <span onClick={() => alert("Coming soon")} className="hover:text-gray-900 transition-colors cursor-pointer">Remarks</span>
+              <span onClick={() => onNavigate?.("medical")} className="hover:text-gray-900 transition-colors cursor-pointer">Medical</span>
+              <span onClick={() => onNavigate?.("remarks")} className="hover:text-gray-900 transition-colors cursor-pointer">Remarks</span>
               <span onClick={() => onNavigate?.("results")} className="hover:text-gray-900 transition-colors cursor-pointer whitespace-nowrap">Result Analysis</span>
             </div>
             
