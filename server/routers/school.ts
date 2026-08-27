@@ -152,7 +152,26 @@ export const schoolRouter = router({
     return await CBTExam.find({ isDeleted: false }).sort({ _id: -1 }).lean();
   }),
   createCBTExam: publicProcedure
-    .input(z.object({ title: z.string(), description: z.string().optional(), examType: z.string().optional(), subject: z.string().optional(), targetClass: z.string().optional(), durationMinutes: z.number().optional() }))
+    .input(z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      examType: z.string().optional(),
+      subject: z.string().optional(),
+      targetClass: z.string().optional(),
+      code: z.string().optional(),
+      marksPerQuestion: z.number().optional(),
+      randomQuestionSelection: z.boolean().optional(),
+      isPracticeTest: z.boolean().optional(),
+      startAt: z.string().optional(),
+      endAt: z.string().optional(),
+      durationHours: z.number().optional(),
+      durationMinutes: z.number().optional(),
+      shuffleQuestions: z.boolean().optional(),
+      shuffleAnswers: z.boolean().optional(),
+      allowViewCorrectAnswers: z.boolean().optional(),
+      publishResultAutomatically: z.boolean().optional(),
+      instructions: z.string().optional()
+    }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) throw new Error("Auth failed");
       const { CBTExam } = require("../models/school");
