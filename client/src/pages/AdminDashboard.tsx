@@ -32,7 +32,7 @@ export default function AdminDashboard({ summary, onNavigate }: { summary: any; 
       {/* Header Section */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">Welcome {user?.displayName || "Administrator"}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight uppercase">Welcome {(user as any)?.displayName || "Administrator"}</h1>
         </div>
         <div className="flex gap-2">
            <button className="px-4 py-2 bg-blue-500 text-white text-xs font-bold rounded shadow-sm hover:bg-blue-600 transition-colors">

@@ -1,4 +1,4 @@
-import { Student, Attendance, ExamResult, Fee, Document, Homework, AuditLog, SchoolUser } from "../models/school";
+import { Student, Attendance, Fee, Document, Homework, AuditLog, SchoolUser } from "../models/school";
 import { getSchoolIdentity, PlatformUser } from "./school";
 import bcrypt from "bcryptjs";
 

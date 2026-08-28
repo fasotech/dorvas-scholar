@@ -64,8 +64,8 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
           <AvatarUploader 
             id={summary?.identity?.profileId}
             type="Teacher"
-            currentPicture={user?.profilePicture}
-            initials={user?.displayName?.charAt(0) || "T"}
+            currentPicture={(user as any)?.profilePicture}
+            initials={(user as any)?.displayName?.charAt(0) || "T"}
             size="md"
             editable={false}
           />
@@ -180,7 +180,7 @@ export default function TeacherDashboard({ summary, onNavigate }: { summary: any
                     if (file) {
                       const reader = new FileReader();
                       reader.onloadend = () => {
-                        setEditForm(p => ({ ...p, profilePicture: reader.result as string }));
+                        setEditForm((p: any) => ({ ...p, profilePicture: reader.result as string }));
                       };
                       reader.readAsDataURL(file);
                     }

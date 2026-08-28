@@ -310,7 +310,7 @@ export default function StudentProfile({ params }: { params: { studentId: string
                       if (file) {
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                          setEditForm(p => ({ ...p, profilePicture: reader.result as string }));
+                          setEditForm((p: any) => ({ ...p, profilePicture: reader.result as string }));
                         };
                         reader.readAsDataURL(file);
                       }

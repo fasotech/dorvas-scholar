@@ -1,6 +1,9 @@
 import { useState } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { format } from "date-fns";
 import { trpc } from "../lib/trpc";
-import { Loader2, Plus, Edit, Trash, BookOpen, Clock, CheckCircle2, Circle, Copy, Download, Eye, ListFilter } from "lucide-react";
+import { Loader2, Check, Plus, Edit, Trash, BookOpen, Clock, CheckCircle2, Circle, Copy, Download, Eye, ListFilter } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ReactQuill from 'react-quill-new';
@@ -27,16 +30,51 @@ const quillModules = {
 export default function TeacherExams({ summary }: { summary: any }) {
   const [activeView, setActiveView] = useState<"list" | "create" | "edit" | "assign">("list");
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
-  const [selectedExamClass, setSelectedExamClass] = useState<string>("YEAR 7 PRIMEROSE"); // Need to track class for assignment
+  const [selectedExamClass, setSelectedExamClass] = useState<string>("YEAR 7 PRIMEROSE"); 
+  const [previewExamId, setPreviewExamId] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { data: exams, refetch } = trpc.school.listCBTExams.useQuery();
 
   const handleCreated = (id: string, targetClass: string) => {
     toast.success("Exam created successfully!");
+    refetch();
     setSelectedExamId(id);
     setSelectedExamClass(targetClass);
-    setActiveView("edit"); // Move to add questions
-    refetch();
+    setActiveView("edit"); 
+  };
+
+  const handleDownloadPdf = async (examId: string, title: string) => {
+    try {
+      setIsDownloading(true);
+      toast.info("Generating PDF, please wait...");
+      setPreviewExamId(examId); // Open preview to render the content for pdf
+      
+      // Give it time to render the modal fully
+      setTimeout(async () => {
+        const element = document.getElementById("pdf-content");
+        if (!element) {
+          toast.error("Could not find content to download");
+          setPreviewExamId(null);
+          setIsDownloading(false);
+          return;
+        }
+        const canvas = await html2canvas(element, { scale: 2 });
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`${title.replace(/\s+/g, "_")}_Questions.pdf`);
+        setPreviewExamId(null);
+        setIsDownloading(false);
+        toast.success("Downloaded successfully!");
+      }, 1500);
+    } catch (err) {
+      toast.error("Failed to generate PDF");
+      setPreviewExamId(null);
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -51,37 +89,13 @@ export default function TeacherExams({ summary }: { summary: any }) {
             {/* Top Filter Panel */}
             <div className="bg-white border rounded shadow-sm">
               <div className="bg-[#125c3a] text-white p-2 text-sm font-bold flex items-center gap-2">
-                <Circle size={10} fill="white" /> Test Manager
+                <Circle size={10} fill="white" /> Question Bank Manager
               </div>
               <div className="p-6 flex flex-col gap-4 max-w-2xl mx-auto">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Select School</label>
-                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
-                    <option>Spring Valley High School</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Session</label>
-                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
-                    <option>2025/2026</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Test Type</label>
-                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
-                    <option>Test/Assessment</option>
-                  </select>
-                </div>
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-bold text-gray-700 w-24 text-right">Class</label>
                   <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
                     <option>YEAR 7 PRIMEROSE</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-bold text-gray-700 w-24 text-right">Subject</label>
-                  <select className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
-                    <option>ICT</option>
                   </select>
                 </div>
               </div>
@@ -100,6 +114,7 @@ export default function TeacherExams({ summary }: { summary: any }) {
                   </button>
                 </div>
               </div>
+              
               <div className="p-3 border-b flex justify-between items-center bg-gray-50">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <select className="border border-gray-300 rounded p-1"><option>10</option></select> records
@@ -110,58 +125,64 @@ export default function TeacherExams({ summary }: { summary: any }) {
               </div>
 
               {!exams || exams.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No tests created yet. Click "New Test" to begin.</div>
+                <div className="p-8 text-center text-gray-500">No tests available.</div>
               ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b text-xs text-gray-500">
-                      <th className="p-3 w-12 text-center font-bold">S/N</th>
-                      <th className="p-3 font-bold">Test Information</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {exams.map((exam: any, i: number) => (
-                      <tr key={exam._id} className="border-b hover:bg-gray-50">
-                        <td className="p-4 text-center align-top text-gray-500 font-bold">{i + 1}</td>
-                        <td className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="text-[#125c3a] font-bold text-lg mb-1">{exam.title} <span className="text-gray-500 font-medium text-sm ml-2">{exam.targetClass}</span></div>
-                              <div className="flex gap-4 text-xs text-gray-500 font-medium mb-2">
-                                <span className="flex items-center gap-1 bg-gray-200 px-2 py-0.5 rounded"><Clock size={12}/> Duration (mins): {exam.durationHours * 60 + exam.durationMinutes}</span>
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Total Qs.: {exam.questionCount || 0}</span>
-                                <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Total Mrks.: {(exam.questionCount || 0) * exam.marksPerQuestion}</span>
-                              </div>
-                              <div className="flex gap-2 mb-2">
-                                <span className={`text-xs px-2 py-0.5 rounded font-bold ${exam.isPublished ? 'bg-blue-500 text-white' : 'bg-amber-400 text-amber-900'}`}>{exam.isPublished ? 'Published' : 'Not Published'}</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <div className="text-xs text-gray-500 mb-2 font-medium">
-                                {exam.startAt ? new Date(exam.startAt).toLocaleString() : 'Not set'} - {exam.endAt ? new Date(exam.endAt).toLocaleString() : 'Not set'}
-                              </div>
-                              <div className="flex gap-1 justify-end">
-                                <button className="text-xs border text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Download size={12}/> Download</button>
-                                <button className="text-xs border text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Eye size={12}/> Preview</button>
-                                <button onClick={() => { 
-                                  setSelectedExamId(exam._id); 
-                                  setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
-                                  setActiveView("edit"); 
-                                }} className="text-xs border text-purple-600 hover:bg-purple-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Edit size={12}/> Edit</button>
-                                <button onClick={() => { 
-                                  setSelectedExamId(exam._id); 
-                                  setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
-                                  setActiveView("assign"); 
-                                }} className="text-xs border text-teal-600 hover:bg-teal-50 px-2 py-1 rounded font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Assign</button>
-                                <button className="text-xs border text-red-600 hover:bg-red-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Trash size={12}/> Delete</button>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b text-xs text-gray-500 bg-gray-50">
+                        <th className="p-3 w-12 text-center">S/N</th>
+                        <th className="p-3">Test Information</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {exams.map((exam: any, i: number) => (
+                        <tr key={exam._id} className="border-b hover:bg-gray-50">
+                          <td className="p-4 text-center align-top font-bold text-gray-500">{i + 1}</td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-2">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="font-bold text-gray-800">{exam.title} <span className="font-normal text-gray-500">{exam.targetClass}</span></div>
+                                  <div className="flex gap-4 mt-2">
+                                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                      <Clock size={10}/> Duration (mins): {exam.durationMinutes || 30}
+                                    </span>
+                                    <span className="text-xs font-bold text-gray-500 bg-indigo-50 px-2 py-0.5 rounded">Total Qs: 0</span>
+                                    <span className="text-xs font-bold text-gray-500 bg-amber-50 px-2 py-0.5 rounded">Total Mrks: 0</span>
+                                  </div>
+                                  <div className="mt-2">
+                                    <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Published</span>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xs font-bold text-gray-500 mb-2">
+                                    {exam.startAt ? format(new Date(exam.startAt), "M/d/yyyy, h:mm:ss a") : "Not set"} - {exam.endAt ? format(new Date(exam.endAt), "M/d/yyyy, h:mm:ss a") : "Not set"}
+                                  </div>
+                                  <div className="flex gap-1 justify-end">
+                                    <button disabled={isDownloading} onClick={() => handleDownloadPdf(exam._id, exam.title)} className="text-xs border text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Download size={12}/> Download</button>
+                                    <button onClick={() => setPreviewExamId(exam._id)} className="text-xs border text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Eye size={12}/> Preview</button>
+                                    <button onClick={() => { 
+                                      setSelectedExamId(exam._id); 
+                                      setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
+                                      setActiveView("edit"); 
+                                    }} className="text-xs border text-purple-600 hover:bg-purple-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Edit size={12}/> Edit</button>
+                                    <button onClick={() => { 
+                                      setSelectedExamId(exam._id); 
+                                      setSelectedExamClass(exam.targetClass || "YEAR 7 PRIMEROSE");
+                                      setActiveView("assign"); 
+                                    }} className="text-xs border text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Check size={12}/> Assign</button>
+                                    <button className="text-xs border text-red-600 hover:bg-red-50 px-2 py-1 rounded font-medium flex items-center gap-1"><Trash size={12}/> Delete</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </>
@@ -170,30 +191,39 @@ export default function TeacherExams({ summary }: { summary: any }) {
         {activeView === "create" && (
           <CreateExamForm onCreated={handleCreated} onCancel={() => setActiveView("list")} />
         )}
-
-        {activeView === "edit" && (
+        
+        {activeView === "edit" && selectedExamId && (
           <ExamEditor 
-            examId={selectedExamId!} 
+            examId={selectedExamId} 
             onBack={() => { setActiveView("list"); refetch(); }} 
             onContinue={() => setActiveView("assign")} 
           />
         )}
-        
-        {activeView === "assign" && (
+
+        {activeView === "assign" && selectedExamId && (
           <AssignStudents 
-            examId={selectedExamId!} 
+            examId={selectedExamId}
             targetClass={selectedExamClass}
             onBack={() => { setActiveView("list"); refetch(); }} 
           />
         )}
       </div>
+
+      {/* Preview Modal */}
+      {previewExamId && (
+        <PreviewModal 
+          examId={previewExamId} 
+          onClose={() => setPreviewExamId(null)} 
+          isDownloading={isDownloading} 
+        />
+      )}
     </div>
   );
 }
 
-function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string) => void, onCancel: () => void }) {
+function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string, targetClass: string) => void, onCancel: () => void }) {
   const createMutation = trpc.school.createCBTExam.useMutation({
-    onSuccess: (data) => onCreated(data._id),
+    onSuccess: (data) => onCreated(data._id, "YEAR 7 PRIMEROSE"),
     onError: (err) => toast.error(err.message)
   });
 
@@ -222,22 +252,6 @@ function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string) => vo
       targetClass: "YEAR 7 PRIMEROSE"
     });
   };
-
-  const Switch = ({ checked, onChange, label }: { checked: boolean, onChange: (c: boolean) => void, label?: string }) => (
-    <div className="flex flex-col gap-1 items-start">
-      {label && <label className="text-xs font-bold text-gray-700">{label}</label>}
-      <button 
-        type="button" 
-        onClick={() => onChange(!checked)}
-        className={`w-12 h-6 rounded-sm flex items-center px-1 transition-colors ${checked ? 'bg-[#125c3a] justify-end' : 'bg-red-500 justify-start'}`}
-      >
-        <div className="w-4 h-4 bg-white rounded-sm shadow-sm" />
-        <span className="absolute text-[10px] text-white font-bold px-1.5 pointer-events-none">
-          {checked ? 'ON' : 'OFF'}
-        </span>
-      </button>
-    </div>
-  );
 
   return (
     <div className="bg-white rounded border overflow-hidden">
@@ -467,7 +481,7 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
     } else {
       // Default all
       const s = new Set<string>();
-      students.forEach(st => s.add(st._id));
+      students.forEach((st: any) => s.add(st._id));
       setSelectedIds(s);
     }
   }
@@ -475,7 +489,7 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       const s = new Set<string>();
-      students?.forEach(st => s.add(st._id));
+      students?.forEach((st: any) => s.add(st._id));
       setSelectedIds(s);
     } else {
       setSelectedIds(new Set());
@@ -517,7 +531,7 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
             </tr>
           </thead>
           <tbody className="text-sm">
-            {students?.map((s, i) => (
+            {students?.map((s: any, i: number) => (
               <tr key={s._id} className="border-b hover:bg-gray-50">
                 <td className="p-3 text-center"><input type="checkbox" checked={selectedIds.has(s._id)} onChange={() => toggleOne(s._id)} /></td>
                 <td className="p-3 text-center text-gray-500 border-l">{i + 1}</td>
@@ -606,5 +620,92 @@ function AddQuestionForm({ examId, onAdded, defaultMarks }: { examId: string, on
         {mut.isPending ? "Adding..." : "+ Add to Test"}
       </button>
     </form>
+  );
+}
+
+const Switch = ({ checked, onChange, label }: { checked: boolean, onChange: (c: boolean) => void, label?: string }) => (
+  <div className="flex flex-col gap-1 items-start">
+    {label && <label className="text-xs font-bold text-gray-700">{label}</label>}
+    <button 
+      type="button" 
+      onClick={() => onChange(!checked)}
+      className={`w-12 h-6 rounded-sm flex items-center px-1 transition-colors relative ${checked ? 'bg-[#125c3a] justify-end' : 'bg-red-500 justify-start'}`}
+    >
+      <div className="w-4 h-4 bg-white rounded-sm shadow-sm z-10" />
+      <span className={`absolute text-[10px] text-white font-bold px-1.5 pointer-events-none ${checked ? 'left-0' : 'right-0'}`}>
+        {checked ? 'ON' : 'OFF'}
+      </span>
+    </button>
+  </div>
+);
+
+function PreviewModal({ examId, onClose, isDownloading }: { examId: string, onClose: () => void, isDownloading: boolean }) {
+  const { data, isLoading } = trpc.school.getCBTExam.useQuery({ id: examId });
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg flex items-center gap-2"><Loader2 className="animate-spin"/> Loading preview...</div>
+      </div>
+    );
+  }
+
+  if (!data?.exam) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 overflow-y-auto pt-10 pb-20 px-4">
+      <div className="max-w-4xl mx-auto bg-white rounded shadow-2xl relative">
+        {!isDownloading && (
+          <div className="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t">
+            <h2 className="font-bold text-lg text-gray-800">Exam Preview: {data.exam.title}</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 font-bold bg-white px-3 py-1 rounded shadow-sm border text-sm">Close</button>
+          </div>
+        )}
+        
+        <div id="pdf-content" className="p-10 bg-white">
+          <div className="text-center mb-8 pb-6 border-b-2 border-gray-800">
+            <h1 className="text-2xl font-black uppercase tracking-wider mb-2">{data.exam.title}</h1>
+            <p className="font-bold text-gray-600 text-lg uppercase">{data.exam.subject} - {data.exam.targetClass}</p>
+            <div className="flex justify-center gap-6 mt-4 font-bold text-sm">
+              <span>Time: {data.exam.durationHours ? `${data.exam.durationHours}h ` : ''}{data.exam.durationMinutes}m</span>
+              <span>Marks per Question: {data.exam.marksPerQuestion}</span>
+              <span>Total Questions: {data.questions.length}</span>
+            </div>
+          </div>
+          
+          {data.exam.instructions && data.exam.instructions !== "<p><br></p>" && (
+            <div className="mb-8 p-4 bg-gray-50 border border-gray-200 rounded">
+              <h3 className="font-bold text-sm mb-2 text-gray-800 uppercase tracking-wider underline">Instructions:</h3>
+              <div dangerouslySetInnerHTML={{ __html: data.exam.instructions }} className="text-sm prose max-w-none" />
+            </div>
+          )}
+
+          <div className="space-y-8">
+            {data.questions.map((q: any, i: number) => (
+              <div key={q._id} className="break-inside-avoid">
+                <div className="flex gap-4">
+                  <div className="font-bold text-lg pt-0.5">{i + 1}.</div>
+                  <div className="flex-1">
+                    <div className="text-base mb-3 font-medium text-gray-900" dangerouslySetInnerHTML={{ __html: q.questionText }}></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
+                      {q.options.map((opt: string, optIdx: number) => (
+                        <div key={optIdx} className="flex gap-3 text-sm">
+                          <span className="font-bold text-gray-700">{String.fromCharCode(65 + optIdx)}.</span>
+                          <span>{opt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-12 pt-6 border-t border-gray-300 text-center text-xs text-gray-400 font-medium">
+            End of Document - Generated by GreenLedger
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

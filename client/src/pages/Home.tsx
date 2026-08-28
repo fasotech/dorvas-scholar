@@ -76,7 +76,7 @@ const secondaryNav: NavItem[] = [
   { label: "Announcements", key: "announcements", icon: Bell }, { label: "School calendar", key: "calendar", icon: CalendarDays }, { label: "Settings", key: "settings", icon: Settings }, { label: "User Admin", key: "users", icon: Settings }
 ];
 
-const moduleData: Record<ProtectedSection, { eyebrow: string; title: string; description: string; primary: string }> = {
+const moduleData: Partial<Record<ProtectedSection, { eyebrow: string; title: string; description: string; primary: string }>> = {
   students: { eyebrow: "Student records", title: "A clearer view of every learner.", description: "Search the student profiles and admission records that are available to your role.", primary: "Add new student" },
   classes: { eyebrow: "Academic structure", title: "Classes with a complete learning picture.", description: "Review class setup, academic levels, and subject organisation from the school database.", primary: "Create class" },
   attendance: { eyebrow: "Daily register", title: "See who is present, early, and supported.", description: "Live attendance records appear here once the register is submitted by an authorised teacher.", primary: "Take attendance" },
@@ -391,23 +391,23 @@ export default function Home() {
   if (!isAuthenticated) return <SignInGate />;
   const schoolRole = dashboardQuery.data?.identity.role;
   const role: PortalRole = schoolRole === "teacher" ? "Teacher" : schoolRole === "student" ? "Student" : schoolRole === "parent" ? "Parent" : "Administrator";
-  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? primaryNav.filter((item) => item.key !== "fees") : role === "Student" ? studentNav : primaryNav.filter((item) => item.key === "overview");
-  const permittedSecondary = role === "Student" ? [] : role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key === "announcements" || item.key === "calendar");
+  const permittedPrimary = role === "Administrator" ? primaryNav : role === "Teacher" ? teacherNav : role === "Student" ? studentNav : primaryNav.filter((item) => item.key === "overview");
+  const permittedSecondary = (role === "Student" || role === "Teacher") ? [] : role === "Administrator" ? secondaryNav : secondaryNav.filter((item) => item.key === "announcements" || item.key === "calendar");
   const initials = (dashboardQuery.data?.identity.displayName ?? user?.name ?? "GL").split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase();
   const createLabel = active === "overview" ? roleCopy[role].action : active === "users" ? "New User" : (moduleData as any)[active]?.primary;
-  const navigate = (key: SectionKey) => { setActive(key); setMobileNavOpen(false); };
+  const navigate = (key: any) => { setActive(key as SectionKey); setMobileNavOpen(false); };
   
   const renderContent = () => {
-    if (active === "overview") return <Dashboard role={role} summary={dashboardQuery.data} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} />;
+    if (active === "overview") return <Dashboard role={role} summary={dashboardQuery.data || {}} isLoading={dashboardQuery.isLoading} onNavigate={navigate} onCreate={() => setCreateOpen(true)} />;
     if (active === "users") return <UserManagement />;
-    if (active === "exams" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data} />;
-    if (active === "cbt_manage" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data} />;
+    if (active === "exams" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data || {}} />;
+    if (active === "cbt_manage" && role === "Teacher") return <TeacherExams summary={dashboardQuery.data || {}} />;
     if (active === "cbt_question_bank" && role === "Teacher") return <QuestionBank />;
     if (active === "cbt_results" && role === "Teacher") return <ResultManager />;
     return <Workspace section={active as any} onCreate={() => setCreateOpen(true)} />;
   };
 
-  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><AvatarUploader initials={initials} currentPicture={user?.profilePicture} size="sm" editable={role === "Administrator"} /><button className="notice-button" style={{marginLeft:"8px"}} onClick={() => void logout()} aria-label="Sign out" title="Log Out"><LogOut size={18} /></button></div></header><div className="canvas-content">{renderContent()}</div></main>{createOpen && <CreatePanel section={active} label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
+  return <div className="portal-shell"><aside className={`sidebar ${mobileNavOpen ? "is-open" : ""}`}><div className="sidebar-top"><LedgerMark /><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)} aria-label="Close menu"><X size={20} /></button></div><div className="sidebar-label">School desk</div><NavList items={permittedPrimary} active={active} onNavigate={navigate} /><div className="sidebar-label more">More</div><NavList items={permittedSecondary} active={active} onNavigate={navigate} /><div className="sidebar-spacer" /></aside>{mobileNavOpen && <button className="sidebar-scrim" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" />}<main className="main-canvas"><header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-brand"><LedgerMark /></div><span className="topbar-rule" /><span className="topbar-date"><CalendarDays size={15} /> Secure school workspace</span></div><div className="topbar-actions"><button className="notice-button" onClick={() => navigate("announcements")} aria-label="Open announcements"><Bell size={18} /></button><span className="role-chip">{schoolRole ?? "Link profile"}</span><AvatarUploader initials={initials} currentPicture={(user as any)?.profilePicture} size="sm" editable={role === "Administrator"} /><button className="notice-button" style={{marginLeft:"8px"}} onClick={() => void logout()} aria-label="Sign out" title="Log Out"><LogOut size={18} /></button></div></header><div className="canvas-content">{renderContent()}</div></main>{createOpen && <CreatePanel section={active} label={createLabel} onClose={() => setCreateOpen(false)} />}</div>;
 }
 
 

@@ -7,7 +7,7 @@ import { canAccessSection, getScopedFilter } from "./schoolAccess";
 export const dashboardSections = ["students", "teachers", "classes", "attendance", "exams", "results", "fees", "announcements", "calendar", "settings"] as const;
 export type DashboardSection = (typeof dashboardSections)[number];
 
-type PlatformUser = { openId: string; email?: string | null; name?: string | null };
+export type PlatformUser = { openId: string; email?: string | null; name?: string | null };
 
 export async function getSchoolIdentity(platformUser: PlatformUser) {
   const connection = await getMongoConnection();
