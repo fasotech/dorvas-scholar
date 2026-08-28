@@ -205,6 +205,29 @@ export const schoolRouter = router({
       await CBTQuestion.findByIdAndUpdate(input.id, { isDeleted: true });
       return { success: true };
     }),
+  importBankQuestions: publicProcedure
+    .input(z.object({ examId: z.string(), questionIds: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new Error("Auth failed");
+      await require("../services/school").getMongoConnection();
+      const { CBTQuestion } = require("../models/school");
+      const bankQuestions = await CBTQuestion.find({ _id: { $in: input.questionIds } }).lean();
+      
+      const copies = bankQuestions.map((bq: any) => {
+        const copy = { ...bq };
+        delete copy._id;
+        delete copy.__v;
+        delete copy.createdAt;
+        delete copy.updatedAt;
+        copy.examId = input.examId;
+        return copy;
+      });
+      
+      if (copies.length > 0) {
+        await CBTQuestion.insertMany(copies);
+      }
+      return { success: true, count: copies.length };
+    }),
   listBankQuestions: publicProcedure
     .input(z.object({ targetClass: z.string().optional(), subject: z.string().optional() }))
     .query(async ({ input }) => {

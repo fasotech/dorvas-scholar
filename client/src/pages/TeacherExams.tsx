@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { format } from "date-fns";
@@ -342,6 +342,7 @@ function CreateExamForm({ onCreated, onCancel }: { onCreated: (id: string, targe
 
 function ExamEditor({ examId, onBack, onContinue }: { examId: string, onBack: () => void, onContinue: () => void }) {
   const { data, isLoading, refetch } = trpc.school.getCBTExam.useQuery({ id: examId });
+  const [showPicker, setShowPicker] = useState(false);
   const publishMutation = trpc.school.publishCBTExam.useMutation({
     onSuccess: () => { toast.success("Status updated!"); refetch(); },
     onError: (err) => toast.error(err.message)
@@ -451,7 +452,7 @@ function ExamEditor({ examId, onBack, onContinue }: { examId: string, onBack: ()
           <button type="button" onClick={onBack} className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded shadow-sm font-bold text-sm">Go Back</button>
           <div className="flex-1" />
           <button className="px-6 py-2 bg-[#2d7a9f] hover:bg-[#1f5b7a] text-white rounded shadow-sm font-bold text-sm">UPDATE</button>
-          <button className="px-6 py-2 bg-[#4cc36b] hover:bg-[#3ba355] text-white rounded shadow-sm font-bold text-sm">ADD QUESTIONS</button>
+          <button onClick={() => setShowPicker(true)} className="px-6 py-2 bg-[#4cc36b] hover:bg-[#3ba355] text-white rounded shadow-sm font-bold text-sm">ADD QUESTIONS</button>
           <button onClick={onContinue} className="px-6 py-2 bg-[#4bc0c0] hover:bg-[#3a9c9c] text-white rounded shadow-sm font-bold text-sm">Continue</button>
         </div>
       </div>
@@ -470,21 +471,21 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
   });
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [initialized, setInitialized] = useState(false);
 
-  // Initialize selected from DB
-  if (examData?.exam && selectedIds.size === 0 && students && assignMut.isIdle) {
-    const assigned = (examData.exam as any).assignedStudents || [];
-    if (assigned.length > 0) {
+  useEffect(() => {
+    if (examData?.exam && students && !initialized) {
+      const assigned = (examData.exam as any).assignedStudents || [];
       const s = new Set<string>();
-      assigned.forEach((id: any) => s.add(id.toString()));
+      if (assigned.length > 0) {
+        assigned.forEach((id: any) => s.add(id.toString()));
+      } else {
+        students.forEach((st: any) => s.add(st._id));
+      }
       setSelectedIds(s);
-    } else {
-      // Default all
-      const s = new Set<string>();
-      students.forEach((st: any) => s.add(st._id));
-      setSelectedIds(s);
+      setInitialized(true);
     }
-  }
+  }, [examData, students, initialized]);
 
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -496,6 +497,13 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
     }
   };
 
+  const publishMut = trpc.school.publishCBTExam.useMutation({
+    onSuccess: () => {
+      toast.success("Test Published to Student Dashboard!");
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
   const toggleOne = (id: string) => {
     const next = new Set(selectedIds);
     if (next.has(id)) next.delete(id);
@@ -504,7 +512,11 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
   };
 
   const handleUpdate = () => {
-    assignMut.mutate({ examId, studentIds: Array.from(selectedIds) });
+    assignMut.mutate({ examId, studentIds: Array.from(selectedIds) }, {
+      onSuccess: () => {
+        publishMut.mutate({ id: examId, isPublished: true });
+      }
+    });
   };
 
   if (isLoading) return <div className="p-8 text-center"><Loader2 className="animate-spin inline" /></div>;
@@ -545,8 +557,8 @@ function AssignStudents({ examId, onBack, targetClass }: { examId: string, onBac
         
         <div className="mt-4 flex justify-between">
           <button onClick={onBack} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2 rounded shadow-sm text-sm">Go Back</button>
-          <button onClick={handleUpdate} disabled={assignMut.isPending} className="bg-[#125c3a] hover:bg-[#0e482d] text-white font-bold px-6 py-2 rounded shadow-sm text-sm">
-            {assignMut.isPending ? "Updating..." : "Update"}
+          <button onClick={handleUpdate} disabled={assignMut.isPending || publishMut.isPending} className="bg-[#125c3a] hover:bg-[#0e482d] text-white font-bold px-6 py-2 rounded shadow-sm text-sm">
+            {assignMut.isPending || publishMut.isPending ? "Publishing..." : "Publish Test"}
           </button>
         </div>
       </div>
@@ -704,6 +716,83 @@ function PreviewModal({ examId, onClose, isDownloading }: { examId: string, onCl
           <div className="mt-12 pt-6 border-t border-gray-300 text-center text-xs text-gray-400 font-medium">
             End of Document - Generated by GreenLedger
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuestionPicker({ examId, defaultClass, defaultSubject, onClose }: { examId: string, defaultClass: string, defaultSubject: string, onClose: () => void }) {
+  const [targetClass, setTargetClass] = useState(defaultClass || "YEAR 7 PRIMEROSE");
+  const [subject, setSubject] = useState(defaultSubject || "ICT");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const { data: questions, isLoading } = trpc.school.listBankQuestions.useQuery({ targetClass, subject });
+  const importMut = trpc.school.importBankQuestions.useMutation({
+    onSuccess: (data) => { toast.success("Added " + data.count + " questions!"); onClose(); },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleUpdate = () => {
+    if (selectedIds.size === 0) return toast.error("Select at least one question");
+    importMut.mutate({ examId, questionIds: Array.from(selectedIds) });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 overflow-y-auto pt-10 pb-20 px-4">
+      <div className="max-w-4xl mx-auto bg-white rounded shadow-2xl relative">
+        <div className="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t">
+          <h2 className="font-bold text-lg text-gray-800">Select Questions from Bank</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 font-bold bg-white px-3 py-1 rounded shadow-sm border text-sm">Close</button>
+        </div>
+        <div className="p-4 border-b flex gap-4 bg-gray-100">
+          <select value={targetClass} onChange={e => setTargetClass(e.target.value)} className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+            <option>All</option>
+            <option>YEAR 7 PRIMEROSE</option>
+            <option>YEAR 8 DAFFODIL</option>
+            <option>YEAR 9 TULIP</option>
+            <option>YEAR 10 VIOLET</option>
+          </select>
+          <select value={subject} onChange={e => setSubject(e.target.value)} className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+            <option>All</option>
+            <option>ICT</option>
+            <option>MATHEMATICS</option>
+            <option>ENGLISH</option>
+            <option>PHYSICS</option>
+          </select>
+          <div className="flex-1" />
+          <div className="font-bold text-sm flex items-center">Selected: {selectedIds.size}</div>
+        </div>
+        
+        <div className="p-4 min-h-[400px]">
+          {isLoading ? <div className="p-8 text-center"><Loader2 className="animate-spin inline" /></div> : (
+            <div className="space-y-4">
+              {questions?.length === 0 && <div className="text-center text-gray-500 py-8">No questions found in the bank for this filter.</div>}
+              {questions?.map((q: any) => (
+                <div key={q._id} className="flex gap-4 p-4 border rounded hover:border-[#125c3a] cursor-pointer" onClick={() => toggleOne(q._id)}>
+                  <input type="checkbox" checked={selectedIds.has(q._id)} onChange={() => toggleOne(q._id)} className="mt-1" />
+                  <div>
+                    <div dangerouslySetInnerHTML={{ __html: q.questionText }} className="text-sm font-bold text-gray-800" />
+                    <div className="text-xs text-gray-500 mt-2">{q.subject} - {q.difficulty || "EASY"}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-t flex justify-end gap-4 bg-gray-50 rounded-b">
+          <button onClick={onClose} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-6 py-2 rounded shadow-sm text-sm">Cancel</button>
+          <button onClick={handleUpdate} disabled={importMut.isPending} className="bg-[#125c3a] hover:bg-[#0e482d] text-white font-bold px-6 py-2 rounded shadow-sm text-sm">
+            {importMut.isPending ? "Adding..." : "Update"}
+          </button>
         </div>
       </div>
     </div>
