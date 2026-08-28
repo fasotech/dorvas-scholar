@@ -150,11 +150,15 @@ export default function QuestionBank() {
 }
 
 function CreateQuestionForm({ targetClass, subject, onBack }: { targetClass: string, subject: string, onBack: () => void }) {
+  const [formClass, setFormClass] = useState(targetClass || "YEAR 7 PRIMEROSE");
+  const [formSubject, setFormSubject] = useState(subject || "ICT");
   const [qText, setQText] = useState("");
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [correctIdx, setCorrectIdx] = useState(0);
   const [difficulty, setDifficulty] = useState("EASY");
-  const [topic, setTopic] = useState(subject);
+  const [topic, setTopic] = useState(subject || "ICT");
+  const [tags, setTags] = useState("");
+  const [questionType, setQuestionType] = useState("Multiple Choice Single Answer");
   
   const createMut = trpc.school.createBankQuestion.useMutation({
     onSuccess: () => { toast.success("Question added to bank!"); onBack(); },
@@ -163,28 +167,63 @@ function CreateQuestionForm({ targetClass, subject, onBack }: { targetClass: str
 
   const handleSubmit = () => {
     if (!qText.trim()) return toast.error("Question text is required");
+    if (options.length < 2) return toast.error("Provide at least 2 options");
     if (options.some(o => !o.trim())) return toast.error("All options must be filled");
     createMut.mutate({
-      targetClass,
-      subject,
+      targetClass: formClass,
+      subject: formSubject,
       topic,
       difficulty,
       questionText: qText,
       options,
-      correctOptionIndex: correctIdx,
+      correctOptionIndex: correctIdx >= options.length ? 0 : correctIdx,
+      tags: tags ? tags.split(",").map(t => t.trim()) : [],
+      questionType
     });
+  };
+
+  const removeOption = (idx: number) => {
+    if (options.length <= 2) return toast.error("Minimum 2 options required");
+    const newOpts = options.filter((_, i) => i !== idx);
+    setOptions(newOpts);
+    if (correctIdx === idx) setCorrectIdx(0);
+    else if (correctIdx > idx) setCorrectIdx(correctIdx - 1);
+  };
+
+  const addOption = () => {
+    setOptions([...options, ""]);
   };
 
   return (
     <div className="bg-white border rounded shadow-sm relative pb-16">
       <div className="p-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-6">Spring Valley High School [{targetClass}] ({subject})</h2>
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <label className="text-sm font-bold text-gray-700 block mb-1">Class</label>
+            <select value={formClass} onChange={e => setFormClass(e.target.value)} className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+              <option>YEAR 7 PRIMEROSE</option>
+              <option>YEAR 8 DAFFODIL</option>
+              <option>YEAR 9 TULIP</option>
+              <option>YEAR 10 VIOLET</option>
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="text-sm font-bold text-gray-700 block mb-1">Subject</label>
+            <select value={formSubject} onChange={e => setFormSubject(e.target.value)} className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]">
+              <option>ICT</option>
+              <option>MATHEMATICS</option>
+              <option>ENGLISH</option>
+              <option>PHYSICS</option>
+            </select>
+          </div>
+        </div>
         
         <div className="space-y-6">
           <div>
             <label className="text-sm font-bold text-gray-700 block mb-2">Question Option Type <span className="text-red-500">*</span></label>
-            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#125c3a] text-sm text-gray-700">
+            <select value={questionType} onChange={e => setQuestionType(e.target.value)} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#125c3a] text-sm text-gray-700">
               <option>Multiple Choice Single Answer</option>
+              <option>True or False</option>
             </select>
           </div>
 
@@ -220,7 +259,7 @@ function CreateQuestionForm({ targetClass, subject, onBack }: { targetClass: str
 
           <div>
             <label className="text-sm font-bold text-gray-700 block mb-2">Tags (optional)</label>
-            <input placeholder="Tags separated by comma" className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]" />
+            <input value={tags} onChange={e => setTags(e.target.value)} placeholder="Tags separated by comma" className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]" />
           </div>
 
           <div>
@@ -246,10 +285,13 @@ function CreateQuestionForm({ targetClass, subject, onBack }: { targetClass: str
                     placeholder="Answer"
                     className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#125c3a]"
                   />
-                  <button className="text-red-500 hover:text-red-700"><CloseIcon size={16} /></button>
+                  <button onClick={() => removeOption(i)} className="text-red-500 hover:text-red-700"><CloseIcon size={16} /></button>
                 </div>
               ))}
             </div>
+            <button onClick={addOption} className="mt-4 ml-8 px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold text-gray-700 flex items-center gap-1">
+              + Add Option
+            </button>
           </div>
         </div>
       </div>

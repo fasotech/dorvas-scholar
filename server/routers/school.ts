@@ -208,6 +208,7 @@ export const schoolRouter = router({
   listBankQuestions: publicProcedure
     .input(z.object({ targetClass: z.string().optional(), subject: z.string().optional() }))
     .query(async ({ input }) => {
+      await require("../services/school").getMongoConnection();
       const { CBTQuestion } = require("../models/school");
       const q: any = { examId: { $exists: false }, isDeleted: false };
       if (input.targetClass && input.targetClass !== "All") q.targetClass = input.targetClass;
@@ -215,9 +216,10 @@ export const schoolRouter = router({
       return await CBTQuestion.find(q).lean();
     }),
   createBankQuestion: publicProcedure
-    .input(z.object({ targetClass: z.string(), subject: z.string(), topic: z.string().optional(), difficulty: z.string().optional(), questionText: z.string(), options: z.array(z.string()), correctOptionIndex: z.number(), tags: z.array(z.string()).optional() }))
+    .input(z.object({ targetClass: z.string(), subject: z.string(), questionType: z.string().optional(), topic: z.string().optional(), difficulty: z.string().optional(), questionText: z.string(), options: z.array(z.string()), correctOptionIndex: z.number(), tags: z.array(z.string()).optional() }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) throw new Error("Auth failed");
+      await require("../services/school").getMongoConnection();
       const { CBTQuestion } = require("../models/school");
       const q = new CBTQuestion(input);
       await q.save();

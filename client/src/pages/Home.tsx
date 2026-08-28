@@ -112,7 +112,7 @@ function LedgerMark() {
   return <div className="brand-lockup" aria-label="Green Ledger"><img src="/greenledger-logo.png" alt="Green Ledger" className="h-8 w-auto bg-white p-1 rounded" /></div>;
 }
 
-function NavList({ items, active, onNavigate }: { items: NavItem[]; active: SectionKey; onNavigate: (key: SectionKey) => void }) {
+function NavList({ items, active, onNavigate }: { items: NavItem[]; active: SectionKey; onNavigate: (key: any) => void }) {
   const [expanded, setExpanded] = useState<string[]>([]);
   return <nav className="nav-list" aria-label="Portal navigation">{items.map((item) => { 
     const Icon = item.icon; 
@@ -334,7 +334,7 @@ import TeacherExams from "./TeacherExams";
 import QuestionBank from "./QuestionBank";
 import ResultManager from "./ResultManager";
 
-function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: SectionKey) => void; onCreate: () => void }) {
+function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: PortalRole; summary: any; isLoading: boolean; onNavigate: (key: any) => void; onCreate: () => void }) {
   if (role === "Student") return <StudentDashboard onNavigate={onNavigate} />;
   if (role === "Teacher") return <TeacherDashboard summary={summary} onNavigate={onNavigate} />;
   
@@ -347,7 +347,7 @@ function Dashboard({ role, summary, isLoading, onNavigate, onCreate }: { role: P
 
 function Workspace({ section, onCreate }: { section: ProtectedSection; onCreate: () => void }) {
   const [query, setQuery] = useState("");
-  const data = moduleData[section];
+  const data = moduleData[section] || { eyebrow: "", title: "", description: "", primary: "" };
   const recordsQuery = trpc.school.records.useQuery({ section, query }, { retry: false, refetchOnWindowFocus: false });
   const records = recordsQuery.data?.records ?? [];
   const columns = recordsQuery.data?.columns ?? [];
